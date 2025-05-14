@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frame Crafter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: url('/static/hbbg3.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #fff;
+            padding-top: 70px;
+            padding-bottom: 100px; /* Add padding for fixed content bar */
+        }
+        .gradient-text {
+            background: #FFD166;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .card {
+            background: #252525;
+            backdrop-filter: blur(10px);
+            border: 1px solid #FFD166;
+        }
+        .btn-gradient {
+            background: linear-gradient(90deg, #ff6b6b, #ffc6c6);
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+        /* Prompt card styles (align with index.html) */
+        .prompt-card {
+            transition: all 0.3s ease;
+            position: relative;
+            background: #252525;
+            border: 1px solid #FFD166;
+            text-align: left;
+        }
+        .prompt-card.selected {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 209, 102, 0.2);
+            border: 1px solid #FFD166;
+        }
+        .prompt-card.selected::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 0.5rem;
+            background: #333333;
+            z-index: -1;
+            animation: none;
+        }
+        .prompt-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 25px;
+            height: 25px;
+            background: #FFD166;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+        .prompt-card .prompt-content {
+            position: relative;
+            z-index: 1;
+        }
+        /* Edit button and editing functionality */
+        .edit-btn {
+            transition: all 0.2s ease;
+        }
+        .edit-btn:hover {
+            transform: translateY(-2px);
+        }
+        .prompt-edit textarea {
+            min-height: 200px;
+            height: auto;
+            resize: vertical;
+            width: 100%;
+            display: block;
+            box-sizing: border-box;
+            overflow: auto;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+        .prompt-edit {
+            width: 100%;
+        }
+        /* Gradient overlay için nefes alma animasyonu */
+        .breathing-gradient {
+            /* animation: breathing-gradient 3s ease-in-out infinite; - Breathing animation removed */
+            opacity: 0.5;
+        }
+        
+        @keyframes breathing-gradient {
+            0% {
+                opacity: 0.3;
+            }
+            50% {
+                opacity: 0.7;
+            }
+            100% {
+                opacity: 0.3;
+            }
+        }
+        /* Aspect ratio seçimi için stil */
+        .aspect-ratio-option {
+            transition: all 0.3s ease;
+            position: relative;
+            background: #252525;
+            border: 1px solid #333333;
+        }
+        .aspect-ratio-option.selected {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 209, 102, 0.2);
+            border: 1px solid #FFD166;
+        }
+        .aspect-ratio-option.selected::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border-radius: 0.5rem;
+            background: transparent;
+            z-index: -1;
+            animation: none;
+        }
+        @keyframes pulse {
+            0% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.6;
+            }
+        }
+        /* Görsel galerisi için stil */
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            background-color: #131313;
+        }
+        .image-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+        .image-item:hover {
+            transform: translateY(-5px);
+        }
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s ease;
+        }
+        .image-item:hover img {
+            opacity: 0.9;
+        }
+        
+        /* Modern yükleme animasyonları */
+        .loader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        /* Prompt yükleme animasyonu */
+        .prompt-loader {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .prompt-loader div {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #FFD166;
+            animation: prompt-loader 1.2s linear infinite;
+        }
+        .prompt-loader div:nth-child(1) {
+            top: 8px;
+            left: 8px;
+            animation-delay: 0s;
+        }
+        .prompt-loader div:nth-child(2) {
+            top: 8px;
+            left: 32px;
+            animation-delay: -0.4s;
+        }
+        .prompt-loader div:nth-child(3) {
+            top: 8px;
+            left: 56px;
+            animation-delay: -0.8s;
+        }
+        .prompt-loader div:nth-child(4) {
+            top: 32px;
+            left: 8px;
+            animation-delay: -0.4s;
+        }
+        .prompt-loader div:nth-child(5) {
+            top: 32px;
+            left: 32px;
+            animation-delay: -0.8s;
+        }
+        .prompt-loader div:nth-child(6) {
+            top: 32px;
+            left: 56px;
+            animation-delay: -1.2s;
+        }
+        .prompt-loader div:nth-child(7) {
+            top: 56px;
+            left: 8px;
+            animation-delay: -0.8s;
+        }
+        .prompt-loader div:nth-child(8) {
+            top: 56px;
+            left: 32px;
+            animation-delay: -1.2s;
+        }
+        .prompt-loader div:nth-child(9) {
+            top: 56px;
+            left: 56px;
+            animation-delay: -1.6s;
+        }
+        @keyframes prompt-loader {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+        
+        /* Görsel yükleme animasyonu */
+        .image-loader {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .image-loader:before, .image-loader:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid transparent;
+        }
+        .image-loader:before {
+            border-top-color: #FFD166;
+            border-right-color: #EBBE59;
+            animation: spin 1.5s linear infinite;
+        }
+        .image-loader:after {
+            border-bottom-color: #FFD166;
+            border-left-color: #EBBE59;
+            animation: spin 1s ease-in-out infinite reverse;
+        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg) scale(1);
+            }
+            50% {
+                transform: rotate(180deg) scale(1.1);
+            }
+            100% {
+                transform: rotate(360deg) scale(1);
+            }
+        }
+        
+        /* Yükleme metni animasyonu */
+        .loading-text {
+            font-weight: 500;
+            background: #FFD166;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shine 2s linear infinite;
+        }
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+        /* Tab Bar Styles - Updated for better positioning */
+        .tab-bar {
+            background: #252525;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            z-index: 9999 !important;
+            height: 60px !important; 
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button:hover {
+            transform: translateY(-2px);
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+        .content-container {
+            padding-top: 10px;
+        }
+
+        /* Son Üretilen İçerikler için hover efekti */
+        .recent-content-bar {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: bottom;
+            z-index: 40;
+            max-height: 42px; /* Height for title only */
+            overflow: hidden;
+        }
+        
+        .recent-content-bar.expanded {
+            max-height: 80vh; /* Increased from 70vh */
+            transform: translateY(0);
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .recent-content-item {
+            position: relative;
+            overflow: hidden;
+            height: 235px; 
+            width: 100%;
+            transition: all 0.3s ease-in-out;
+            border-radius: 0.375rem;
+            cursor: pointer;
+        }
+        
+        .recent-content-image,
+        .recent-content-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .recent-content-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1rem;
+        }
+        
+        .recent-content-item:hover .recent-content-overlay {
+            opacity: 1;
+        }
+        
+        /* Ensure smooth transition for content container */
+        #recentContentContainer {
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 0;
+        }
+        
+        #recentContentContainer.visible {
+            opacity: 1;
+            max-height: 102vh;
+            padding: 1rem 0.5rem;
+        }
+        
+        .scroll-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 5;
+        }
+        
+        .scroll-left {
+            left: 10px;
+        }
+        
+        .scroll-right {
+            right: 10px;
+        }
+        
+        .recent-content-bar:hover .scroll-indicator {
+            opacity: 0.8;
+        }
+        
+        .scroll-indicator:hover {
+            opacity: 1 !important;
+            background: rgba(0, 0, 0, 0.7);
+        }
+        
+        /* Button glow effect */
+        .button-glow {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .button-glow:hover {
+            box-shadow: 0 0 10px 1px rgba(255, 209, 102, 0.2);
+        }
+        
+        .button-glow:after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 209, 102, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        
+        .button-glow:hover:after {
+            opacity: 1;
+        }
+        
+        /* Gold button glow effect - Specially for FFD166 colored buttons */
+        #generateBtn.button-glow:hover {
+            box-shadow: 0 0 10px 1px rgba(255, 209, 102, 0.3);
+        }
+        
+        #generateBtn.button-glow:after {
+            background: radial-gradient(circle, rgba(255, 209, 102, 0.1) 0%, transparent 70%);
+        }
+   
+        /* Phantom font definitions */
+        @font-face {
+            font-family: 'PhantomSans';
+            src: url('/static/fonts/PhantomSans0.8-Medium.otf') format('opentype');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'PhantomSansBold';
+            src: url('/static/fonts/PhantomSans0.8-Bold.otf') format('opentype');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'PhantomSansRegular';
+            src: url('/static/fonts/PhantomSans0.8-Regular.otf') format('opentype');
+            font-display: swap;
+        }
+        .phantom-text {
+            font-family: 'PhantomSans', sans-serif;
+            letter-spacing: -0.01em;
+        }
+        .phantom-text-regular {
+            font-family: 'PhantomSansRegular', sans-serif;
+            letter-spacing: -0.01em;
+        }
+        
+        /* Aspect ratio selection styling */
+        .aspect-ratio-option.selected {
+            border-color: #FFD166 !important;
+            border-width: 2px;
+            box-shadow: 0 0 10px rgba(255, 209, 102, 0.3);
+        }
+    </style>
+</head>
+<body class="text-gray-100 min-h-screen">
+    <!-- Fixed Navigation Bar -->
+    <nav style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: #252525; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); height: 60px; display: flex; align-items: center;">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <!-- Left side: Home link -->
+            <a href="{{ url_for('home_direct') }}" class="text-white hover:text-[#FFD166] transition-colors flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span class="phantom-text-regular">Home Page</span>
+            </a>
+            <!-- Right side: Actions -->
+            <div class="flex items-center gap-4">
+                <a href="/library" class="button-glow flex items-center gap-2 px-4 py-2 rounded-lg bg-[#131313] hover:bg-[#1a1a1a] border border-[#333333] transition-all duration-300">
+                    <i class="ri-gallery-line text-lg"></i>
+                    <span class="phantom-text-regular">Library</span>
+                </a>
+                <div id="creditDisplay" class="button-glow inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#131313] text-white border border-[#333333]">
+                    <i class="ri-coin-line text-lg"></i>
+                    <span class="phantom-text-regular">Credits: Yükleniyor...</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <header class="mb-12 text-center">
+            <h1 class="text-4xl font-bold text-[#FFD166] mb-2 phantom-text text-center mx-auto">Frame Crafter</h1>
+            <p class="text-gray-400 max-w-2xl mx-auto">Type a vibe, get a masterpiece. FrameCrafter lets you craft high-concept scenes with a single prompt — and level them up to motion if needed. A visual ideation playground for creators and marketers.</p>
+        </header>
+
+        <div class="max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid #FFD166;">
+            <div class="p-6">
+                <div id="imageResult" class="mt-8">
+                    <h2 class="text-2xl phantom-text-regular text-center mb-4 text-[#FFD166]">Oluşturulan Görseller</h2>
+                    
+                    <!-- Görsel Galerisi -->
+                    <div class="bg-[#131313] p-4 rounded-lg">
+                        {% if image_urls and image_urls|length > 0 %}
+                        <div class="image-gallery">
+                            {% for image_url in image_urls %}
+                            <div class="image-item">
+                                <a href="{{ image_url }}" target="_blank" class="block">
+                                    <img src="{{ image_url }}" alt="Oluşturulan Görsel {{ loop.index }}" class="rounded-lg shadow-lg hover:opacity-90 transition-opacity cursor-zoom-in" title="Tam boyutta görmek için tıklayın">
+                                </a>
+                                <div class="mt-2 flex justify-center">
+                                    <a href="{{ image_url }}" target="_blank" class="text-sm py-2 px-4 bg-blue-600 text-white font-medium rounded-lg transition duration-300 flex items-center hover:bg-blue-700">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                        </svg>
+                                        Görseli Aç ve Kaydet
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Tüm görselleri indirme butonu kaldırıldı -->
+                        {% else %}
+                        <div class="text-center py-8">
+                            <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-purple-500 mb-4"></div>
+                            <p class="text-gray-300">Görseller yükleniyor veya henüz oluşturulmadı...</p>
+                            <p class="text-gray-400 mt-2">Lütfen bekleyin veya yeni bir görsel oluşturun.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h3 class="text-lg font-medium text-gray-300 mb-2">Kullanılan Prompt:</h3>
+                        <p id="usedPrompt" class="text-gray-400 bg-gray-700 p-3 rounded-lg">{{ prompt }}</p>
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="text-lg font-medium text-gray-300 mb-2">Marka Bilgisi:</h3>
+                        <p id="brandInfo" class="text-gray-400 bg-gray-700 p-3 rounded-lg">{{ brand }}</p>
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="text-lg font-medium text-gray-300 mb-2">Kullanılan Ölçü Oranı:</h3>
+                        <p id="usedAspectRatio" class="text-gray-400 bg-gray-700 p-3 rounded-lg">{{ aspect_ratio }}</p>
+                    </div>
+                    <div class="mt-6 text-center">
+                        <a href="{{ url_for('image2') }}" class="inline-block py-3 px-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium rounded-lg shadow-lg hover:from-purple-700 hover:to-pink-700 transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50">
+                            Yeni Görsel Oluştur
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="mt-12 text-center text-gray-500 text-sm">
+            <p class="phantom-text" style="text-align: center; font-size: 14px; opacity: 0.5;">© 2025 | Agentic Creative Suite powered by <b>Consciouslab</b></p>
+        </footer>
+    </main>
+
+    <!-- Recent Content Bar -->
+    <div class="fixed bottom-0 left-0 right-0 bg-opacity-90 backdrop-filter backdrop-blur-lg border-t border-gray-800 py-2 px-4 recent-content-bar collapsed" style="background: #252525;">
+        <div class="container mx-auto relative">
+            <div class="grid grid-cols-3 items-center cursor-pointer" id="recentContentHeader">
+                <div class="col-span-1"><!-- Empty space --></div>
+                <h3 class="text-sm phantom-text-regular text-[#FFD166] text-center col-span-1">Recently Created Content</h3>
+                <div class="flex items-center justify-end col-span-1">
+                    <button id="viewAllBtn" class="text-xs text-gray-400 hover:text-white transition-colors mr-2 whitespace-nowrap">View All</button>
+                    <i class="ri-arrow-up-s-line text-[#FFD166] transition-transform" id="toggleArrow"></i>
+                </div>
+            </div>
+            <div id="recentContentContainer" class="hidden mt-3">
+                <div id="recentContentGrid" class="grid grid-cols-4 grid-rows-3 gap-6">
+                    <!-- content items -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center z-50">
+        <div class="relative max-w-4xl w-full bg-[#131313] rounded-lg shadow-xl p-4 mx-4">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors duration-200">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            <div class="mt-4">
+                <img id="modalImage" src="" alt="Selected image" class="max-h-[70vh] w-auto mx-auto rounded-lg">
+            </div>
+            <div class="flex justify-center space-x-4 mt-6">
+                <button id="saveImageBtn" class="px-6 py-3 bg-[#131313] hover:bg-[#1a1a1a] text-white font-medium rounded-lg flex items-center justify-center space-x-2 transition-all duration-200 hover:scale-105 border-2 border-[#FFD166] hover:shadow-[0_0_15px_rgba(255,209,102,0.7)]">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                    <span>Görseli Aç</span>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <button id="convertToVideoBtn" class="px-6 py-3 bg-[#FFD166] hover:bg-[#FFD166]/80 text-[#131313] font-medium rounded-lg flex items-center justify-center space-x-2 transition-all duration-200 hover:scale-105">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        <span>Videoya Dönüştür</span>
+                    </button>
+                    <select id="videoDuration" class="px-3 py-2 bg-[#FFD166] text-[#131313] rounded-lg">
+                        <option value="5">5 saniye</option>
+                        <option value="9">9 saniye</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let lastKnownCreditId = null;
+            
+            // Auto resize textarea function
+            function autoResizeTextarea(textarea) {
+                // Set initial height and scroll height
+                textarea.style.height = 'auto';
+                textarea.style.height = (textarea.scrollHeight) + 'px';
+                
+                // Add input event listener to resize as user types
+                textarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight) + 'px';
+                });
+            }
+            
+            // Setup MutationObserver to detect dynamically added textareas
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList') {
+                        // Look for new textareas that might have been added
+                        const textareas = document.querySelectorAll('.prompt-edit textarea');
+                        textareas.forEach(function(textarea) {
+                            if (!textarea.dataset.initialized) {
+                                // Mark as initialized to avoid duplicate handlers
+                                textarea.dataset.initialized = 'true';
+                                // Apply auto-resize functionality
+                                autoResizeTextarea(textarea);
+                            }
+                        });
+                    }
+                });
+            });
+            
+            // Start observing the document with the configured parameters
+            observer.observe(document.body, { childList: true, subtree: true });
+            
+            // Handle all edit buttons with event delegation
+            document.addEventListener('click', function(e) {
+                // Handle edit button clicks
+                if (e.target.closest('.edit-btn')) {
+                    const editBtn = e.target.closest('.edit-btn');
+                    const index = editBtn.getAttribute('data-index');
+                    const promptId = `prompt-${index}`;
+                    const textareaId = `textarea-${index}`;
+                    
+                    const promptContent = document.getElementById(promptId);
+                    const promptEdit = document.getElementById(textareaId);
+                    
+                    if (promptContent && promptEdit) {
+                        promptContent.classList.add('hidden');
+                        promptEdit.classList.remove('hidden');
+                        
+                        // Auto-resize the textarea
+                        const textarea = promptEdit.querySelector('textarea');
+                        if (textarea) {
+                            autoResizeTextarea(textarea);
+                        }
+                    }
+                }
+            });
+            
+            async function fetchCurrentCredit() {
+                try {
+                    console.log('Fetching credit from backend API...');
+                    const response = await fetch('/api/get-credit');
+                    
+                    if (!response.ok) {
+                        throw new Error(`API error: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('API response:', data);
+                    
+                    if (data.success) {
+                        const currentCredit = data.credit;
+                        const currentId = data.id;
+                        const createdAt = data.created_at;
+                        
+                        console.log('Güncel Kredi Değeri:', currentCredit);
+                        console.log('Kredi Kaydı ID:', currentId);
+                        console.log('Oluşturulma Zamanı:', createdAt);
+                        document.querySelector('#creditDisplay span').textContent = `Credits: ${currentCredit}`;
+                        lastKnownCreditId = currentId;
+                    } else {
+                        console.log('Hiç kredi kaydı bulunamadı veya hata oluştu');
+                        document.querySelector('#creditDisplay span').textContent = 'Credits: 0';
+                    }
+                } catch (error) {
+                    console.error('Kredi değeri alınamadı:', error);
+                    document.querySelector('#creditDisplay span').textContent = 'Credits: Hata';
+                }
+            }
+
+            function setupRealtimeUpdates() {
+                try {
+                    console.log('Setting up SSE connection...');
+                    let eventSource = null;
+                    
+                    // Only establish connection when page is visible
+                    function connectSSE() {
+                        if (eventSource) {
+                            return; // Already connected
+                        }
+                        
+                        console.log('Establishing SSE connection for credit updates');
+                        eventSource = new EventSource('/api/listen-credit-changes');
+                        
+                        eventSource.onmessage = function(event) {
+                            if (event.data && event.data.trim()) {
+                                console.log('SSE message received:', event);
+                                try {
+                                    const data = JSON.parse(event.data);
+                                    
+                                    if (data.error) {
+                                        console.error('SSE error:', data.error);
+                                        return;
+                                    }
+                                    
+                                    if (data.id && data.id !== lastKnownCreditId) {
+                                        console.log('New credit record detected:', data);
+                                        lastKnownCreditId = data.id;
+                                        const creditValue = data.credit || 0;
+                                        document.querySelector('#creditDisplay span').textContent = `Credits: ${creditValue}`;
+                                    }
+                                } catch (error) {
+                                    console.error('Error processing SSE message:', error);
+                                }
+                            }
+                        };
+                        
+                        eventSource.onerror = function(error) {
+                            console.error('SSE connection error:', error);
+                            disconnectSSE();
+                            
+                            // Try to reconnect after 5 seconds
+                            setTimeout(connectSSE, 5000);
+                        };
+                    }
+                    
+                    function disconnectSSE() {
+                        if (eventSource) {
+                            console.log('Closing SSE connection');
+                            eventSource.close();
+                            eventSource = null;
+                        }
+                    }
+                    
+                    // Connect when page is visible, disconnect when hidden
+                    document.addEventListener('visibilitychange', function() {
+                        if (document.visibilityState === 'visible') {
+                            connectSSE();
+                            // Refresh credit info immediately when page becomes visible
+                            fetchCurrentCredit();
+                        } else {
+                            disconnectSSE();
+                        }
+                    });
+                    
+                    // Initial connection if page is visible
+                    if (document.visibilityState === 'visible') {
+                        connectSSE();
+                    }
+                    
+                    window.addEventListener('beforeunload', disconnectSSE);
+                } catch (error) {
+                    console.error('Error setting up SSE:', error);
+                }
+            }
+
+            fetchCurrentCredit();
+            setupRealtimeUpdates();
+
+            const checkInterval = 60000; // 1 minute (just as a fallback)
+            const fallbackChecker = setInterval(fetchCurrentCredit, checkInterval);
+            
+            window.addEventListener('beforeunload', () => {
+                clearInterval(fallbackChecker);
+            });
+
+            // Görsellerin yüklenmesini kontrol et
+            const images = document.querySelectorAll('.image-gallery img');
+            images.forEach(img => {
+                img.addEventListener('error', function() {
+                    this.parentNode.innerHTML = `
+                        <div class="flex items-center justify-center h-48 bg-gray-800 rounded-lg">
+                            <p class="text-red-400 text-sm">Görsel yüklenemedi</p>
+                        </div>
+                    `;
+                });
+            });
+            
+            // İndirme fonksiyonları kaldırıldı
+            
+            // URL parametrelerini kontrol et
+            const urlParams = new URLSearchParams(window.location.search);
+            const promptId = urlParams.get('prompt_id');
+            const imageUrl = urlParams.get('image_url');
+            const imageUrls = urlParams.getAll('image_url');
+            
+            // Görselleri görüntülemek için fonksiyon
+            function displayImages(imageUrls, prompt, brandInput, aspectRatio) {
+                // Yükleme animasyonunu gizle
+                const loaderContainer = document.querySelector('#imageResult .text-center.py-8');
+                if (loaderContainer) {
+                    loaderContainer.classList.add('hidden');
+                }
+                
+                // Prompt ve brand bilgilerini güncelle
+                const promptElement = document.getElementById('usedPrompt');
+                const brandElement = document.getElementById('brandInfo');
+                const aspectRatioElement = document.getElementById('usedAspectRatio');
+                
+                if (promptElement) {
+                    promptElement.textContent = prompt;
+                }
+                
+                if (brandElement) {
+                    brandElement.textContent = brandInput;
+                }
+                
+                if (aspectRatioElement) {
+                    aspectRatioElement.textContent = aspectRatio;
+                }
+                
+                // Görsel galerisini tekrar seç (oluşturulmuş olabilir)
+                const gallery = document.querySelector('.image-gallery');
+                if (gallery) {
+                    // Görselleri ekle
+                    gallery.innerHTML = '';
+                    imageUrls.forEach((url, index) => {
+                        const imageItem = document.createElement('div');
+                        imageItem.className = 'image-item';
+                        imageItem.innerHTML = `
+                            <div class="cursor-pointer">
+                                <img src="${url}" alt="Oluşturulan Görsel ${index + 1}" class="rounded-lg shadow-lg hover:opacity-90 transition-opacity" data-url="${url}" data-index="${index + 1}">
+                            </div>
+                        `;
+                        
+                        // Add click event to open modal
+                        const img = imageItem.querySelector('img');
+                        img.addEventListener('click', function() {
+                            showImageModal(url, index + 1);
+                        });
+                        
+                        gallery.appendChild(imageItem);
+                    });
+                    
+                    // Görsellerin yüklenmesini kontrol et
+                    const images = gallery.querySelectorAll('img');
+                    images.forEach(img => {
+                        img.addEventListener('error', function() {
+                            this.parentNode.innerHTML = `
+                                <div class="flex items-center justify-center h-48 bg-gray-800 rounded-lg">
+                                    <p class="text-red-400 text-sm">Görsel yüklenemedi</p>
+                                </div>
+                            `;
+                        });
+                    });
+                } else {
+                    // Eğer galeri yoksa, yükleme animasyonunu gizle ve galeri oluştur
+                    // Değiştirilmiş CSS sınıflarından dolayı seçici sorunları yaşamamak için daha güvenilir bir seçici kullanalım
+                    const imageResultDiv = document.getElementById('imageResult');
+                    if (imageResultDiv) {
+                        const galleryContainer = imageResultDiv.querySelector('div.p-4.rounded-lg');
+                        if (galleryContainer) {
+                            // Yükleme animasyonunu gizle
+                            const loaderContainer = galleryContainer.querySelector('.text-center.py-8');
+                            if (loaderContainer) {
+                                loaderContainer.classList.add('hidden');
+                            }
+                            
+                            // Galeri oluştur
+                            const newGallery = document.createElement('div');
+                            newGallery.className = 'image-gallery';
+                            galleryContainer.appendChild(newGallery);
+                            
+                            // Görselleri ekle
+                            imageUrls.forEach((url, index) => {
+                                const imageItem = document.createElement('div');
+                                imageItem.className = 'image-item';
+                                imageItem.innerHTML = `
+                                    <div class="cursor-pointer">
+                                        <img src="${url}" alt="Oluşturulan Görsel ${index + 1}" class="rounded-lg shadow-lg hover:opacity-90 transition-opacity" data-url="${url}" data-index="${index + 1}">
+                                    </div>
+                                `;
+                                
+                                // Add click event to open modal
+                                const img = imageItem.querySelector('img');
+                                img.addEventListener('click', function() {
+                                    showImageModal(url, index + 1);
+                                });
+                                
+                                newGallery.appendChild(imageItem);
+                            });
+                        } else {
+                            console.error("Gallery container not found inside imageResult div");
+                        }
+                    } else {
+                        console.error("imageResult div not found");
+                    }
+                }
+            }
+            
+            // Görsel durumunu kontrol eden ve gösteren fonksiyon
+            function checkImageStatusAndDisplay(promptId, prompt, brand) {
+                // Görsel sonuç alanını göster - bu yeterli olacak
+                imageResult.classList.remove('hidden');
+                
+                // Seçilen aspect ratio değerini al
+                const aspectRatio = document.querySelector('input[name="aspectRatio"]:checked').value;
+                
+                // Durum kontrolü için fonksiyon
+                function checkStatus() {
+                    fetch(`/check_image_status/${promptId}?aspect_ratio=${aspectRatio}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! Status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.is_ready && data.image_urls && data.image_urls.length > 0) {
+                                // Görseller hazırsa, sayfayı yenilemeden görselleri göster
+                                displayImages(data.image_urls, data.prompt || prompt, data.brand || brand, data.aspect_ratio || aspectRatio);
+                                
+                                // Kontrol döngüsünü durdur
+                                clearInterval(statusInterval);
+                                
+                                // Butonu sıfırla
+                                resetCreateButton();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Durum kontrolü hatası:', error);
+                            // Hatayı sessizce yakala, polling devam etsin
+                        });
+                }
+                
+                // İlk kontrolü hemen yap
+                checkStatus();
+                
+                // 5 saniyede bir kontrol et
+                const statusInterval = setInterval(checkStatus, 5000);
+                
+                // 60 saniye sonra kontrolü durdur
+                setTimeout(() => {
+                    clearInterval(statusInterval);
+                    
+                    // Eğer hala görseller yüklenmediyse, butonu sıfırla
+                    resetCreateButton();
+                }, 60000);
+            }
+            
+            // Eğer prompt_id varsa ve görseller yoksa, durumu periyodik olarak kontrol et
+            if (promptId && (!imageUrls || imageUrls.length === 0)) {
+                checkImageStatusAndDisplay(promptId, urlParams.get('prompt') || '', urlParams.get('brand') || '');
+            }
+            
+            // Eğer image_url parametresi yoksa, form sayfasını göster
+            if (!imageUrl && !promptId) {
+                // Form sayfası HTML'ini oluştur
+                document.querySelector('main').innerHTML = `
+                    <header class="mb-12 text-center">
+                        <h1 class="text-4xl font-bold text-[#FFD166] mb-2 phantom-text text-center mx-auto">Frame Crafter</h1>
+                        <p class="text-gray-400 max-w-2xl phantom-text-regular text-center mx-auto">Type a vibe, get a masterpiece. FrameCrafter lets you craft high-concept scenes with a
+single prompt — and level them up to motion if needed. A visual ideation playground for
+creators and marketers.</p>
+                    </header>
+
+                    <div class="max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid #FFD166;">
+                        <div class="p-6">
+                            <form id="imageForm" class="mb-6">
+                                <div class="mb-4">
+                                    <label for="brandInput" class="block text-gray-300 mb-2 font-medium"></label>
+                                    <textarea id="brandInput" name="brand_input" rows="4" class="w-full px-4 py-3 bg-[#131313] border border-gray-600 phantom-text-regular rounded-lg focus:outline-none text-gray-100" placeholder="Oluşturmak istediğiniz görseller için bir prompt girin..."></textarea>
+                                </div>
+                                
+                                <button id="generateBtn" type="submit" class="button-glow w-full py-3 px-6 bg-[#131313] text-white font-medium rounded-lg hover:bg-[#1a1a1a] border border-[#333333] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#FFD166] focus:ring-opacity-50 phantom-text-regular text-center">
+                                    Promptları Oluştur
+                                </button>
+                            </form>
+
+                            <div id="loadingPrompts" class="hidden text-center py-8">
+                                <div class="loader-container">
+                                    <div class="prompt-loader">
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                    </div>
+                                    <p class="loading-text text-xl phantom-text-regular">Yaratıcı fikirler oluşturuluyor...</p>
+                                 
+                                </div>
+                            </div>
+
+                            <div id="promptResults" class="hidden">
+                                <h2 class="text-2xl mb-4 phantom-text-regular text-center mx-auto text-[#FFD166] py-4">Oluşturulan Promptlar</h2>
+                                <div class="prompt-container grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <!-- Promptlar JavaScript ile buraya eklenecek -->
+                                </div>
+                                
+                                <!-- Görsel Boyutu seçimi promptların altına taşındı -->
+                                <div class="mt-6 mb-4">
+                                    <label class="block text-gray-300 mb-2 font-medium phantom-text-regular text-center">Görsel Boyutu</label>
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <label class="aspect-ratio-option flex flex-col items-center bg-[#131313] p-4 rounded-lg border border-gray-600 cursor-pointer transition-colors selected">
+                                            <input type="radio" name="aspectRatio" value="1:1" class="sr-only aspect-ratio-input" checked>
+                                            <div class="w-14 h-14 bg-gray-500 rounded-sm mb-2 flex items-center justify-center">
+                                                <div class="w-12 h-12 bg-gray-300 rounded-sm"></div>
+                                            </div>
+                                            <span class="text-gray-300 font-medium phantom-text-regular">1:1</span>
+                                            <span class="text-gray-400 text-xs mt-1 phantom-text-regular">Kare (Instagram, Facebook)</span>
+                                        </label>
+                                        <label class="aspect-ratio-option flex flex-col items-center bg-[#131313] p-4 rounded-lg border border-gray-600 cursor-pointer transition-colors">
+                                            <input type="radio" name="aspectRatio" value="4:5" class="sr-only aspect-ratio-input">
+                                            <div class="w-12 h-15 bg-gray-500 rounded-sm mb-2 flex items-center justify-center">
+                                                <div class="w-10 h-12 bg-gray-300 rounded-sm"></div>
+                                            </div>
+                                            <span class="text-gray-300 font-medium phantom-text-regular">4:5</span>
+                                            <span class="text-gray-400 text-xs mt-1 phantom-text-regular">Dikey (Instagram Post)</span>
+                                        </label>
+                                        <label class="aspect-ratio-option flex flex-col items-center bg-[#131313] p-4 rounded-lg border border-gray-600 cursor-pointer transition-colors">
+                                            <input type="radio" name="aspectRatio" value="16:9" class="sr-only aspect-ratio-input">
+                                            <div class="w-16 h-9 bg-gray-500 rounded-sm mb-2 flex items-center justify-center">
+                                                <div class="w-14 h-7 bg-gray-300 rounded-sm"></div>
+                                            </div>
+                                            <span class="text-gray-300 font-medium phantom-text-regular">16:9</span>
+                                            <span class="text-gray-400 text-xs mt-1 phantom-text-regular">Yatay (Web, LinkedIn)</span>
+                                        </label>
+                                        <label class="aspect-ratio-option flex flex-col items-center bg-[#131313] p-4 rounded-lg border border-gray-600 cursor-pointer transition-colors">
+                                            <input type="radio" name="aspectRatio" value="9:16" class="sr-only aspect-ratio-input">
+                                            <div class="w-12 h-16 bg-gray-500 rounded-sm mb-2 flex items-center justify-center">
+                                                <div class="w-8 h-14 bg-gray-300 rounded-sm"></div>
+                                            </div>
+                                            <span class="text-gray-300 font-medium phantom-text-regular">9:16</span>
+                                            <span class="text-gray-400 text-xs mt-1 phantom-text-regular">Dikey (Instagram Stories)</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-8 text-center">
+                                    <button id="createImageBtn" class="button-glow w-full py-3 px-6 bg-[#131313] text-white font-medium rounded-lg hover:bg-[#1a1a1a] border border-[#333333] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#FFD166] focus:ring-opacity-50 phantom-text-regular text-center" disabled>
+                                        Görsel Oluştur
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="imageLoading" class="hidden text-center py-8">
+                                <div class="loader-container">
+                                    <div class="image-loader"></div>
+                                    <p class="loading-text text-xl">Görsel sanat yaratılıyor...</p>
+                                </div>
+                            </div>
+                            
+                            <div id="imageResult" class="hidden mt-8">
+                                <h2 class="text-2xl phantom-text text-center mb-4 text-[#FFD166]">Oluşturulan Görseller</h2>
+                                
+                                <!-- Görsel Galerisi -->
+                                <div class="bg-[#131313] p-4 rounded-lg">
+                                    <div class="text-center py-8">
+                                        <div class="loader-container">
+                                            <div class="image-loader"></div>
+                                            <p class="loading-text text-xl phantom-text text-center">Görsel üretiliyor...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <footer class="mt-12 text-center text-gray-500 text-sm">
+                         <p class="phantom-text" style="text-align: center; font-size: 14px; opacity: 0.5;">© 2025 | Agentic Creative Suite powered by <b>Consciouslab</b></p>
+                    </footer>
+                `;
+
+                // Form ve diğer elementleri seç
+                const imageForm = document.getElementById('imageForm');
+                const loadingPrompts = document.getElementById('loadingPrompts');
+                const promptResults = document.getElementById('promptResults');
+                const promptContainer = document.querySelector('.prompt-container');
+                const imageLoading = document.getElementById('imageLoading');
+                const imageResult = document.getElementById('imageResult');
+                
+                // Seçilen prompt için global değişken
+                let selectedPrompt = null;
+                
+                // Aspect ratio seçimi için
+                const aspectRatioInputs = document.querySelectorAll('.aspect-ratio-input');
+                const aspectRatioOptions = document.querySelectorAll('.aspect-ratio-option');
+                
+                // Sayfa yüklendiğinde varsayılan seçimi işaretle
+                updateSelectedAspectRatio();
+                
+                // Her bir radio input için event listener ekle
+                aspectRatioInputs.forEach(input => {
+                    input.addEventListener('change', updateSelectedAspectRatio);
+                });
+                
+                // Seçilen aspect ratio'yu güncelle
+                function updateSelectedAspectRatio() {
+                    aspectRatioOptions.forEach(option => {
+                        const input = option.querySelector('input');
+                        if (input.checked) {
+                            option.classList.add('selected');
+                        } else {
+                            option.classList.remove('selected');
+                        }
+                    });
+                }
+                
+                // Form gönderildiğinde
+                imageForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const brandInput = document.getElementById('brandInput').value;
+                    if (!brandInput) {
+                        alert('Lütfen prompt girin');
+                        return;
+                    }
+                    
+                    // Seçilen aspect ratio değerini al
+                    const aspectRatio = document.querySelector('input[name="aspectRatio"]:checked').value;
+                    
+                    // Eski promptları gizle
+                    promptResults.classList.add('hidden');
+                    promptContainer.innerHTML = ''; // Eski promptları temizle
+                    
+                    // Promptları oluşturma işlemi
+                    loadingPrompts.classList.remove('hidden');
+                    
+                    // API'ye istek at
+                    fetch('/generate-prompt-2', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            text: brandInput,
+                            feature_type: 'image',
+                            aspect_ratio: aspectRatio
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        loadingPrompts.classList.add('hidden');
+                        promptResults.classList.remove('hidden');
+                        
+                        // API'den gelen promptları ekrana ekle
+                        promptContainer.innerHTML = '';
+                        data.prompt_data.forEach((item, index) => {
+                            // HTML içeriği oluştur
+                            const promptCard = document.createElement('div');
+                            promptCard.className = 'prompt-card p-4 rounded-lg cursor-pointer transition-all relative';
+                            promptCard.style.background = '#252525';
+                            promptCard.style.textAlign = 'left !important';
+                            
+                            // Prompt ID'si oluştur
+                            const promptId = `prompt-${index}`;
+                            const textareaId = `textarea-${index}`;
+                            
+                            // Prompt kartı içeriği
+                            promptCard.innerHTML = `
+                                <div class="mb-2" style="text-align: center !important;">
+                                    <h3 class="font-medium text-[#FFD166]">${item.style || 'Style ' + (index + 1)}</h3>
+                                </div>
+                                <div class="prompt-content" id="${promptId}" style="text-align: left !important;">
+                                    <p class="text-gray-300 phantom-text-regular" style="text-align: left !important;">${item.prompt}</p>
+                                </div>
+                                <div class="prompt-edit hidden" id="${textareaId}">
+                                    <textarea class="w-full bg-[#131313] text-gray-300 p-2 rounded mb-2 border border-[#333333]" style="min-height: 200px; height: auto; resize: vertical; display: block; box-sizing: border-box; overflow: auto; white-space: pre-wrap; line-height: 1.5; text-align: left !important;">${item.prompt}</textarea>
+                                    <div class="flex justify-center space-x-2">
+                                        <button class="cancel-btn bg-[#131313] hover:bg-[#1a1a1a] text-white text-xs px-2 py-1 rounded transition-colors border border-[#333333]" data-index="${index}">
+                                            İptal
+                                        </button>
+                                        <button class="save-btn bg-[#131313] hover:bg-[#1a1a1a] text-white text-xs px-2 py-1 rounded transition-colors border border-[#333333]" data-index="${index}">
+                                            Kaydet
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mt-3 flex justify-center">
+                                    <button class="edit-btn bg-[#131313] hover:bg-[#1a1a1a] text-white text-xs px-3 py-1 rounded-full transition-colors border border-[#333333]" data-index="${index}">
+                                        Düzenle
+                                    </button>
+                                </div>
+                            `;
+                            
+                            promptContainer.appendChild(promptCard);
+                            
+                            // Prompt kartına tıklama olayı ekle
+                            const promptContent = promptCard.querySelector(`#${promptId}`);
+                            promptContent.addEventListener('click', function(e) {
+                                // Make sure we don't trigger this when editing
+                                if (!e.target.closest('.prompt-edit') && !e.target.closest('.edit-btn')) {
+                                    // Tüm prompt kartlarını normal stile döndür
+                                    const allPromptCards = document.querySelectorAll('.prompt-container > div');
+                                    allPromptCards.forEach(card => {
+                                        card.classList.remove('selected');
+                                    });
+                                    
+                                    // Add selected class
+                                    promptCard.classList.add('selected');
+                                    
+                                    // Seçilen promptu global değişkene kaydet
+                                    selectedPrompt = item.prompt;
+                                    
+                                    // Görsel oluşturma butonunu etkinleştir
+                                    const createImageBtn = document.getElementById('createImageBtn');
+                                    if (createImageBtn) {
+                                        createImageBtn.disabled = false;
+                                        
+                                        // Reset the button with original dark styling
+                                        createImageBtn.className = 'button-glow w-full py-3 px-6 bg-[#131313] text-white font-medium rounded-lg hover:bg-[#1a1a1a] border border-[#333333] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#FFD166] focus:ring-opacity-50 phantom-text-regular text-center';
+                                    }
+                                }
+                            });
+                            
+                            // Düzenle butonuna tıklama olayı ekle
+                            const editBtn = promptCard.querySelector('.edit-btn');
+                            editBtn.addEventListener('click', function(e) {
+                                e.stopPropagation(); // Kartın tıklama olayını engelle
+                                
+                                // Düzenleme modunu aç
+                                const promptContent = document.getElementById(promptId);
+                                const promptEdit = document.getElementById(textareaId);
+                                
+                                promptContent.classList.add('hidden');
+                                promptEdit.classList.remove('hidden');
+                                
+                                // Auto-resize the textarea
+                                const textarea = promptEdit.querySelector('textarea');
+                                if (textarea) {
+                                    // Auto-resize textarea function from parent scope
+                                    autoResizeTextarea(textarea);
+                                }
+                            });
+                            
+                            // İptal butonuna tıklama olayı ekle
+                            const cancelBtn = promptCard.querySelector('.cancel-btn');
+                            cancelBtn.addEventListener('click', function(e) {
+                                e.stopPropagation(); // Kartın tıklama olayını engelle
+                                
+                                // Düzenleme modunu kapat
+                                const promptContent = document.getElementById(promptId);
+                                const promptEdit = document.getElementById(textareaId);
+                                
+                                promptContent.classList.remove('hidden');
+                                promptEdit.classList.add('hidden');
+                                
+                                // Textarea içeriğini orijinal prompt ile değiştir
+                                const textarea = promptEdit.querySelector('textarea');
+                                textarea.value = item.prompt;
+                            });
+                            
+                            // Kaydet butonuna tıklama olayı ekle
+                            const saveBtn = promptCard.querySelector('.save-btn');
+                            saveBtn.addEventListener('click', function(e) {
+                                e.stopPropagation(); // Kartın tıklama olayını engelle
+                                
+                                // Yeni prompt değerini al
+                                const textarea = document.querySelector(`#${textareaId} textarea`);
+                                const newPrompt = textarea.value.trim();
+                                
+                                if (newPrompt) {
+                                    // Prompt değerini güncelle
+                                    item.prompt = newPrompt;
+                                    
+                                    // Update the selected prompt if this was the selected card
+                                    if (selectedPrompt === item.prompt) {
+                                        selectedPrompt = newPrompt;
+                                    }
+                                    
+                                    // Görünümü güncelle
+                                    const promptContent = document.getElementById(promptId);
+                                    promptContent.querySelector('p').textContent = newPrompt;
+                                    
+                                    // Düzenleme modunu kapat
+                                    promptContent.classList.remove('hidden');
+                                    document.getElementById(textareaId).classList.add('hidden');
+                                }
+                            });
+                        });
+                        
+                        // Aspect ratio seçimini güncelle
+                        updateSelectedAspectRatio();
+                        
+                        // Görsel Oluştur butonuna tıklama olayı ekle
+                        const createImageBtn = document.getElementById('createImageBtn');
+                        if (createImageBtn) {
+                            createImageBtn.addEventListener('click', function() {
+                                if (selectedPrompt) {
+                                    // Seçilen aspect ratio değerini al
+                                    const currentAspectRatio = document.querySelector('input[name="aspectRatio"]:checked').value;
+                                    // Görsel oluştur
+                                    generateImage(selectedPrompt, brandInput, currentAspectRatio);
+                                    
+                                    // Butonu devre dışı bırak
+                                    this.disabled = true;
+                                    this.classList.add('opacity-70', 'cursor-not-allowed');
+                                    this.classList.remove('hover:scale-105');
+                                    
+                                    // Butonun içeriğini değiştirmeden sadece devre dışı bırakma
+                                    // No longer changing button text or adding spinner
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        loadingPrompts.classList.add('hidden');
+                        alert('Promptlar oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
+                    });
+                });
+                
+                // Görsel oluşturma fonksiyonu
+                function generateImage(prompt, brandInput, aspectRatio) {
+                    // Prompt sonuçlarını gizle yerine görünür bırakıyoruz
+                    // promptResults.classList.add('hidden');
+                    
+                    // Görsel sonuç alanını göster
+                    imageResult.classList.remove('hidden');
+                    
+                    // Prompt ve brand bilgilerini güncelle
+                    const promptElement = document.getElementById('usedPrompt');
+                    const brandElement = document.getElementById('brandInfo');
+                    const aspectRatioElement = document.getElementById('usedAspectRatio');
+                    
+                    if (promptElement) {
+                        promptElement.textContent = prompt;
+                    }
+                    
+                    if (brandElement) {
+                        brandElement.textContent = brandInput;
+                    }
+                    
+                    if (aspectRatioElement) {
+                        aspectRatioElement.textContent = aspectRatio;
+                    }
+                    
+                    // API'ye istek gönder
+                    const formData = new FormData();
+                    formData.append('prompt', prompt);
+                    formData.append('brand_input', brandInput);
+                    formData.append('aspect_ratio', aspectRatio);
+                    formData.append('redirect', 'false');
+                    formData.append('content_type', 'video-image');
+                    
+                    fetch('/generate_image_2', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Görsel oluşturma hatası: ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Prompt ID varsa, asenkron işleme için kontrol et
+                        if (data.prompt_id) {
+                            // Alert mesajını kaldırdık
+                            
+                            // Görsel durumunu kontrol et
+                            checkImageStatusAndDisplay(data.prompt_id, prompt, brandInput);
+                        } else if (data.image_urls && data.image_urls.length > 0) {
+                            // Görseller hazırsa, sayfayı yenilemeden görselleri göster
+                            displayImages(data.image_urls, data.prompt || prompt, data.brand || '', data.aspect_ratio || '');
+                            
+                            // Butonu sıfırla
+                            resetCreateButton();
+                        } else if (data.image_url) {
+                            // Tek görsel URL'si varsa
+                            displayImages([data.image_url], prompt, data.brand || '', data.aspect_ratio || '');
+                            
+                            // Butonu sıfırla
+                            resetCreateButton();
+                        } else {
+                            // Hata durumu
+                            imageLoading.classList.add('hidden');
+                            alert('Görsel oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
+                            
+                            // Butonu sıfırla
+                            resetCreateButton();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        imageLoading.classList.add('hidden');
+                        alert('Görsel oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
+                        
+                        // Butonu sıfırla
+                        resetCreateButton();
+                    });
+                }
+
+                // Görsel oluşturma butonunu sıfırlama fonksiyonu
+                function resetCreateButton() {
+                    const createImageBtn = document.getElementById('createImageBtn');
+                    if (createImageBtn) {
+                        createImageBtn.disabled = false;
+                        
+                        // Tüm eski sınıfları kaldır ve orijinal koyu stili uygula
+                        createImageBtn.className = 'button-glow w-full py-3 px-6 bg-[#131313] text-white font-medium rounded-lg hover:bg-[#1a1a1a] border border-[#333333] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#FFD166] focus:ring-opacity-50 phantom-text-regular text-center';
+                        
+                        // Metni sıfırla
+                        createImageBtn.innerHTML = 'Görsel Oluştur';
+                    }
+                }
+            }
+        });
+
+        // Add these new functions after the existing code
+        function showImageModal(imageUrl, imageIndex) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            
+            // Set image source
+            modalImage.src = imageUrl;
+            
+            // Set up save button click handler
+            document.getElementById('saveImageBtn').onclick = function() {
+                downloadImage(imageUrl, `generated-image-${imageIndex}.png`);
+            };
+            
+            // Set up video conversion button click handler
+            document.getElementById('convertToVideoBtn').onclick = function() {
+                convertToVideo(imageUrl);
+            };
+            
+            // Show modal
+            modal.classList.remove('hidden');
+            
+            // Add escape key listener
+            document.addEventListener('keydown', handleEscapeKey);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('imageModal');
+            modal.classList.add('hidden');
+            
+            // Remove escape key listener
+            document.removeEventListener('keydown', handleEscapeKey);
+        }
+
+        function handleEscapeKey(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        }
+
+        function downloadImage(imageUrl, fileName) {
+            // Open image in a new tab instead of trying to download it
+            window.open(imageUrl, '_blank');
+        }
+
+        async function convertToVideo(imageUrl) {
+            // Close the modal first
+            closeModal();
+            
+            const durationSelect = document.getElementById('videoDuration');
+            const selectedDuration = parseInt(durationSelect.value, 10);
+            
+            // First, create or find the container for the video section
+            let videoSection = document.getElementById('videoSection');
+            if (!videoSection) {
+                videoSection = document.createElement('div');
+                videoSection.id = 'videoSection';
+                videoSection.className = 'mt-8';
+                
+                // Create the heading outside the container
+                const videoHeading = document.createElement('h2');
+                videoHeading.className = 'text-2xl phantom-text text-center mb-4 text-[#FFD166]';
+                videoHeading.textContent = 'Oluşturulan Video';
+                videoSection.appendChild(videoHeading);
+                
+                // Create the container for the video content
+                let videoContainer = document.createElement('div');
+                videoContainer.id = 'videoContainer';
+                videoContainer.className = 'bg-[#131313] p-4 rounded-lg';
+                videoContainer.innerHTML = `
+                    <div id="videoContent" class="min-h-[200px]"></div>
+                `;
+                videoSection.appendChild(videoContainer);
+                
+                // Add it after the image result container
+                const imageResult = document.getElementById('imageResult');
+                imageResult.parentNode.insertBefore(videoSection, imageResult.nextSibling);
+            }
+            
+            // Show loading state
+            const videoContent = document.getElementById('videoContent');
+            videoContent.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-8">
+                    <div class="prompt-loader mb-4">
+                        <div></div><div></div><div></div>
+                        <div></div><div></div><div></div>
+                        <div></div><div></div><div></div>
+                    </div>
+                    <p class="text-lg phantom-text-regular loading-text">Video Oluşturuluyor...</p>
+            
+                </div>
+            `;
+            
+            videoSection.scrollIntoView({ behavior: 'smooth' });
+            
+            try {
+                const response = await fetch('/image-to-video', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        image_url: imageUrl,
+                        duration: selectedDuration
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Video dönüştürme işlemi başarısız oldu');
+                }
+                
+                if (data.success && data.video_url) {
+                    // Display the video
+                    videoContent.innerHTML = `
+                        <div class="flex flex-col items-center">
+                            <video src="${data.video_url}" controls autoplay loop class="max-w-full rounded-lg shadow-lg mb-4" style="max-height: 400px;"></video>
+                            <div class="flex space-x-4">
+                                <button id="downloadVideoBtn" class="px-6 py-3 bg-[#131313] hover:bg-[#1a1a1a] text-white phantom-text font-medium rounded-lg flex items-center justify-center space-x-2 transition-all duration-200 hover:scale-105 border-2 border-[#FFD166] hover:shadow-[0_0_15px_rgba(255,209,102,0.7)]">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    <span>Videoyu İndir</span>
+                                </button>
+                                <button id="addAudioBtn" class="px-6 py-3 bg-[#FFD166] text-[#131313] phantom-text rounded-lg flex items-center justify-center space-x-2 transition-all duration-200 hover:scale-105">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9v6m4-6v6m4-6v6" />
+                                    </svg>
+                                    <span>Videoya Ses Ekle</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('downloadVideoBtn').addEventListener('click', function() {
+                        downloadVideo(data.video_url, 'generated-video.mp4');
+                    });
+                    document.getElementById('addAudioBtn').addEventListener('click', function() {
+                        showAudioPrompt(data.video_url);
+                    });
+                } else {
+                    throw new Error('Video URL alınamadı');
+                }
+            } catch (error) {
+                console.error('❌ Video dönüştürme hatası:', error);
+                videoContent.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-8">
+                        <div class="text-red-500 mb-4">
+                            <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <p class="text-lg font-medium text-red-400">Video Oluşturulamadı</p>
+                        <p class="text-sm text-gray-400 mt-2">${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function downloadVideo(videoUrl, fileName) {
+            // Open video in a new tab instead of trying to download it directly
+            // This approach avoids CORS issues while still allowing users to save the video
+            window.open(videoUrl, '_blank');
+        }
+
+        // Make functions available to the window scope
+        window.showImageModal = showImageModal;
+        window.closeModal = closeModal;
+        window.downloadImage = downloadImage;
+        window.convertToVideo = convertToVideo;
+        window.downloadVideo = downloadVideo;
+
+        // Function to fetch and display recent content
+        async function fetchRecentContent() {
+            // Reset the content container
+            const recentContentGrid = document.getElementById('recentContentGrid');
+            recentContentGrid.innerHTML = '';
+            
+            // Define variables for pagination and tracking
+            let currentPage = 1;
+            let isLoading = false;
+            let hasMore = true;
+            
+            // Make these variables global so the scroll handler can access them
+            window.contentIsLoading = isLoading;
+            window.contentHasMore = hasMore;
+            
+            // Load initial content
+            loadMoreContent();
+            
+            // Expose this function to be called from scroll event
+            window.loadMoreVideoImageContent = loadMoreContent;
+            
+            // İçerik oluşturma fonksiyonu
+            function createContentItem(item) {
+                const contentItem = document.createElement('div');
+                contentItem.className = 'relative group overflow-hidden rounded-md recent-content-item';
+                
+                // İçerik tipine göre element oluştur
+                let contentElement;
+                if (item.type === 'video') {
+                    contentElement = document.createElement('video');
+                    contentElement.src = item.url;
+                    contentElement.muted = true;
+                    contentElement.className = 'recent-content-video cursor-pointer';
+                    
+                    // Play video on hover
+                    contentElement.addEventListener('mouseenter', function() {
+                        this.play();
+                    });
+                    contentElement.addEventListener('mouseleave', function() {
+                        this.pause();
+                        this.currentTime = 0;
+                    });
+                } else {
+                    contentElement = document.createElement('img');
+                    contentElement.src = item.url;
+                    contentElement.alt = 'Recent content';
+                    contentElement.className = 'recent-content-image cursor-pointer';
+                }
+                
+                // İçerik tıklama olayı - change to always navigate to /library
+                contentItem.addEventListener('click', function() {
+                    window.location.href = '/library';
+                });
+                
+                // Overlay ile içerik detayları
+                const overlay = document.createElement('div');
+                overlay.className = 'recent-content-overlay';
+                
+                const contentTitle = document.createElement('div');
+                contentTitle.className = 'text-white text-xs phantom-text-regular truncate recent-content-title';
+                contentTitle.textContent = item.title || item.type;
+                
+                const contentDate = document.createElement('div');
+                contentDate.className = 'text-gray-300 text-xs recent-content-date';
+                contentDate.textContent = new Date(item.created_at).toLocaleDateString('tr-TR');
+                
+                overlay.appendChild(contentTitle);
+                overlay.appendChild(contentDate);
+                
+                contentItem.appendChild(contentElement);
+                contentItem.appendChild(overlay);
+                
+                // Add audio icon if overlay is not found or can't be created
+                if (!contentItem.querySelector('.recent-content-overlay') || 
+                    item.type === 'audio' || 
+                    (item.title && item.title.toLowerCase().includes('audio'))) {
+                    const audioIcon = document.createElement('div');
+                    audioIcon.className = 'absolute top-2 right-2 p-1 rounded-full bg-black bg-opacity-50';
+                    audioIcon.innerHTML = '<i class="ri-volume-up-fill text-white text-lg"></i>';
+                    contentItem.appendChild(audioIcon);
+                }
+                
+                return contentItem;
+            }
+            
+            // Function to load more content with video-image filter
+            async function loadMoreContent() {
+                if (window.contentIsLoading || !window.contentHasMore) return;
+                
+                console.log("Attempting to load more content...");
+                
+                window.contentIsLoading = true;
+                isLoading = true;
+                
+                try {
+                    // Set a larger limit to get more items at once
+                    const apiUrl = `/api/recent-content?page=${currentPage}&limit=20`;
+                    console.log(`Fetching from: ${apiUrl}`);
+                    
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error(`HTTP error: ${response.status}`, errorText);
+                        throw new Error(`HTTP error: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log("API response data:", data);
+                    
+                    if (data.success) {
+                        if (data.items && data.items.length > 0) {
+                            const filteredItems = data.items.filter(item => 
+                                item.title === 'video-image'
+                            );
+                            
+                            console.log(`Found ${filteredItems.length} video-image items out of ${data.items.length} total items`);
+                            
+                            filteredItems.forEach(item => {
+                                const contentItem = createContentItem(item);
+                                recentContentGrid.appendChild(contentItem);
+                            });
+                            
+                            // Update pagination
+                            hasMore = data.has_more;
+                            window.contentHasMore = hasMore;
+                            currentPage++;
+                            
+                            // If we received less than 16 video-image items and there are more pages,
+                            // auto-load the next page to get more content until we have at least 16 items
+                            if (recentContentGrid.children.length < 16 && data.has_more) {
+                                setTimeout(loadMoreContent, 300); // Add a small delay to prevent overloading
+                            }
+                            
+                            // If no items were found and we have more pages, try the next page
+                            if (filteredItems.length === 0 && data.has_more) {
+                                setTimeout(loadMoreContent, 300);
+                                return;
+                            }
+                            
+                            // If no video-image items found at all
+                            if (filteredItems.length === 0 && recentContentGrid.children.length === 0) {
+                                const noContentMsg = document.createElement('div');
+                                noContentMsg.className = 'col-span-4 text-center py-4 text-gray-500';
+                                noContentMsg.textContent = 'No video-image content found';
+                                recentContentGrid.appendChild(noContentMsg);
+                            }
+                        } else if (recentContentGrid.children.length === 0) {
+                            // No items at all and container is empty
+                            const noContentMsg = document.createElement('div');
+                            noContentMsg.className = 'col-span-4 text-center py-4 text-gray-500';
+                            noContentMsg.textContent = 'No video-image content found';
+                            recentContentGrid.appendChild(noContentMsg);
+                            hasMore = false;
+                            window.contentHasMore = false;
+                        }
+                    } else {
+                        throw new Error(data.error || 'Unknown error');
+                    }
+                } catch (error) {
+                    console.error('Error fetching recent content:', error);
+                    // Hata detaylarını konsola yazdır
+                    console.error('Error details:', error.message, error.stack);
+                    if (recentContentGrid.children.length === 0) {
+                        const errorMsg = document.createElement('div');
+                        errorMsg.className = 'col-span-4 text-center py-4 text-red-400';
+                        errorMsg.textContent = 'İçerikler yüklenemedi';
+                        recentContentGrid.appendChild(errorMsg);
+                    }
+                    hasMore = false;
+                    window.contentHasMore = false;
+                } finally {
+                    isLoading = false;
+                    window.contentIsLoading = false;
+                }
+            }
+            
+            // Toggle content panel visibility
+            const recentContentHeader = document.getElementById('recentContentHeader');
+            const recentContentContainer = document.getElementById('recentContentContainer');
+            const recentContentBar = document.querySelector('.recent-content-bar');
+            const toggleArrow = document.getElementById('toggleArrow');
+            const viewAllBtn = document.getElementById('viewAllBtn');
+            
+            // Function to toggle the content panel with smooth transitions
+            function toggleContentPanel(e) {
+                // Don't propagate events from the library link
+                if (e && e.target.id === 'libraryLink') return;
+                
+                recentContentBar.classList.toggle('expanded');
+                
+                // Use transitions instead of hiding/showing
+                if (recentContentContainer.classList.contains('visible')) {
+                    recentContentContainer.classList.remove('visible');
+                    // Wait for transition to complete before actually hiding
+                    setTimeout(() => {
+                        if (!recentContentBar.classList.contains('expanded')) {
+                            recentContentContainer.classList.add('hidden');
+                        }
+                    }, 500);
+                } else {
+                    recentContentContainer.classList.remove('hidden');
+                    // Small delay to trigger transition after display is set
+                    setTimeout(() => {
+                        recentContentContainer.classList.add('visible');
+                    }, 10);
+                }
+                
+                toggleArrow.style.transform = recentContentBar.classList.contains('expanded') ? 'rotate(180deg)' : 'rotate(0)';
+                
+                // Load more content if needed when expanding
+                if (recentContentBar.classList.contains('expanded') && recentContentGrid.children.length < 16 && window.contentHasMore) {
+                    window.loadMoreVideoImageContent();
+                }
+            }
+            
+            // Add event listeners for header and view all button
+            recentContentHeader.addEventListener('click', toggleContentPanel);
+            viewAllBtn.addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent header click event from firing
+                toggleContentPanel();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Existing event listeners...
+            
+            // Call the fetchRecentContent function
+            fetchRecentContent();
+        });
+
+        // Add showAudioPrompt function
+        function showAudioPrompt(videoUrl) {
+            // Toggle existing prompt container
+            const existing = document.getElementById('audioPromptContainer');
+            if (existing) {
+                existing.remove();
+                return;
+            }
+            // Create prompt panel
+            const container = document.createElement('div');
+            container.id = 'audioPromptContainer';
+            container.className = 'mt-4 w-full bg-[#131313] p-4 rounded-lg shadow-lg ring-1 ring-[#FFD166] ring-opacity-50';
+            container.innerHTML = `
+                <textarea id="audioPromptInput" rows="4" class="w-full px-4 py-2 bg-[#131313] border border-[#333333] rounded-lg focus:outline-none text-gray-100 phantom-text-regular" placeholder="Ses eklemek için İngilizce prompt girin..."></textarea>
+                <div class="mt-2 text-right">
+                    <button id="sendAudioBtn" class="px-4 py-2 bg-[#FFD166] text-[#131313] phantom-text font-semibold rounded-md shadow ring-1 ring-[#FFD166] hover:ring-2 transition-all duration-200">Gönder</button>
+                </div>
+            `;
+            const videoSection = document.getElementById('videoSection');
+            videoSection.appendChild(container);
+            document.getElementById('sendAudioBtn').onclick = async function(e) {
+                e.preventDefault();
+                const promptText = document.getElementById('audioPromptInput').value.trim();
+                if (!promptText) {
+                    alert('Lütfen bir ses promptu girin.');
+                    return;
+                }
+                const sendBtn = this;
+                sendBtn.disabled = true;
+                sendBtn.textContent = 'İşleniyor...';
+                // Show loading animation
+                container.innerHTML = `
+                    <div class="flex flex-col items-center">
+                        <div class="prompt-loader mb-4">
+                            <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                        </div>
+                        <p class="text-lg phantom-text-regular loading-text mt-4">Ses ekleniyor...</p>
+                    </div>
+                `;
+                try {
+                    const response = await fetch('/add-audio-to-video', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ video_url: videoUrl, prompt: promptText, content_type: 'video-image' })
+                    });
+                    const result = await response.json();
+                    if (response.ok && result.success && result.result) {
+                        let newVideoUrl = null;
+                        if (result.result.video_url) newVideoUrl = result.result.video_url;
+                        else if (result.result.audio_video_url) newVideoUrl = result.result.audio_video_url;
+                        else if (result.result.video && typeof result.result.video === 'object') {
+                            const videoObj = result.result.video;
+                            if (videoObj.url) newVideoUrl = videoObj.url;
+                            else if (videoObj.file) newVideoUrl = videoObj.file;
+                            else {
+                                for (const key in videoObj) {
+                                    if (typeof videoObj[key] === 'string' && (videoObj[key].startsWith('http') || key.includes('url') || key.includes('file'))) {
+                                        newVideoUrl = videoObj[key];
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (newVideoUrl) {
+                            container.innerHTML = `
+                                <h3 class="text-2xl phantom-text text-center mb-4 text-[#FFD166]">Ses Eklenen Video</h3>
+                                <div id="generatedAudioVideoGrid" class="grid grid-cols-1 gap-4">
+                                    <video src="${newVideoUrl}" controls autoplay loop class="w-4/5 rounded-lg shadow-lg mb-4 mx-auto object-contain" style="max-height: 400px;"></video>
+                                    <div class="flex justify-center mt-2">
+                                        <button id="downloadAudioVideoBtn" class="px-6 py-3 bg-[#131313] text-white phantom-text-regular rounded-lg flex items-center justify-center space-x-2 ring-1 ring-[#FFD166] hover:ring-2 transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,209,102,0.6)] hover:scale-105">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                            </svg>
+                                            <span>Videoyu İndir</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                            document.getElementById('downloadAudioVideoBtn').addEventListener('click', function() {
+                                downloadVideo(newVideoUrl, 'generated-audio-video.mp4');
+                            });
+                        } else {
+                            container.innerHTML = `<div class="text-red-400 text-center p-6">Video URL bulunamadı.</div>`;
+                        }
+                    } else {
+                        container.innerHTML = `<div class="text-red-400 text-center p-6">${result.error || 'Ses eklenemedi'}</div>`;
+                    }
+                } catch (err) {
+                    console.error('❌ Ses ekleme hatası:', err);
+                    container.innerHTML = `<div class="text-red-400 text-center p-6">Hata oluştu.</div>`;
+                }
+            };
+        }
+    </script>
+</body>
+</html> 

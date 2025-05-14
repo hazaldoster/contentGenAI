@@ -1,0 +1,14 @@
+{
+  "name": "hbprompt2vid",
+  "version": "1.0.0",
+  "description": "Python Flask application for generating images and videos",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "scripts": {
+    "start": "python app.py"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

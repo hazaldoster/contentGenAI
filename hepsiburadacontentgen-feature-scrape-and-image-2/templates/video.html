@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CinematicMind</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: url('/static/hbbg3.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #fff;
+            padding-top: 60px; /* Add padding for fixed tab bar */
+            padding-bottom: 100px; /* Add padding for fixed content bar */
+        }
+        .gradient-text {
+            background: #80CBC4;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid #80CBC4;
+        }
+        .btn-gradient {
+            background: #80CBC4;
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+        
+        /* Modern yükleme animasyonları */
+        .loader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        /* Video yükleme animasyonu */
+        .video-loader {
+            width: 120px;
+            height: 80px;
+            position: relative;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .video-loader:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(128, 203, 196, 0.4);
+            animation: loading 1.5s infinite;
+        }
+        
+        .video-loader:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: #80CBC4;
+            border-bottom-color: #80CBC4;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes loading {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+        
+        @keyframes spin {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+        
+        /* Yükleme metni animasyonu */
+        .loading-text {
+            font-weight: 500;
+            background: #80CBC4;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shine 2s linear infinite;
+        }
+        
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+        
+        /* Video hata durumu */
+        .video-error {
+            width: 100%;
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        /* Prompt düzenleme alanı */
+        .prompt-editor {
+            margin-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1.5rem;
+        }
+        
+        .prompt-editor textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        /* Video boyutu seçimi için stil */
+        .aspect-ratio-option {
+            transition: all 0.3s ease;
+            position: relative;
+            background: #252525;
+            border: 1px solid #333333;
+        }
+        .aspect-ratio-option.selected {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(128, 203, 196, 0.2);
+            border: 1px solid #80CBC4;
+        }
+        .aspect-ratio-option.selected::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border-radius: 0.5rem;
+            background: transparent;
+            z-index: -1;
+            animation: none;
+        }
+        
+        @keyframes pulse {
+            0% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.6;
+            }
+        }
+        
+        /* Regenerate button container */
+        .regenerate-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+        
+        /* Tab Bar Styles */
+        .tab-bar {
+            background: #252525;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            z-index: 9999 !important;
+            height: 60px !important;
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button:hover {
+            transform: translateY(-2px);
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+        
+        /* Button glow effect */
+        .button-glow {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .button-glow:hover {
+            box-shadow: 0 0 10px 1px rgba(128, 203, 196, 0.2);
+        }
+        
+        .button-glow:after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(128, 203, 196, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        
+        .button-glow:hover:after {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="text-gray-100 min-h-screen">
+    <!-- Tab Bar -->
+    <nav style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: #252525; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); height: 60px; display: flex; align-items: center;">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <!-- Left side: Home link -->
+            <a href="{{ url_for('home_direct') }}" class="text-white hover:text-[#80CBC4] transition-colors flex items-center justify-center text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span class="font-medium phantom-text-regular text-center">Home Page</span>
+            </a>
+            
+            <!-- Right side: Actions -->
+            <div class="flex items-center gap-4">
+                <a href="/library" class="button-glow flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[#131313] hover:bg-[#1a1a1a] border border-[#333333] transition-all duration-300">
+                    <i class="ri-gallery-line text-lg"></i>
+                    <span class="font-medium phantom-text-regular text-center">Library</span>
+                </a>
+                <div id="creditDisplay" class="button-glow inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[#131313] text-white border border-[#333333]">
+                    <i class="ri-coin-line text-lg"></i>
+                    <span class="font-medium phantom-text-regular text-center">Credits: Yükleniyor...</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-12 text-center">
+            <h1 class="text-5xl font-bold text-[#80CBC4] mb-2 phantom-text text-center mx-auto">CinematicMind</h1>
+            <p class="text-gray-400 max-w-2xl phantom-text-regular text-center mx-auto"></p>
+        </header>
+
+        <div class="max-w-3xl mx-auto card rounded-xl shadow-2xl overflow-hidden">
+            <div class="p-6">
+                <div id="videoResult" class="mt-8">
+                    <div class="bg-[#131313] p-4 rounded-lg">
+                        <div id="videoLoading" class="loader-container hidden">
+                            <div class="video-loader"></div>
+                            <p class="loading-text text-xl phantom-text-regular text-center mx-auto">Video yükleniyor...</p>
+                            <p class="text-gray-400 mt-2 phantom-text-regular text-center mx-auto">Lütfen bekleyin, video hazırlanıyor</p>
+                        </div>
+                        <video id="generatedVideo" controls autoplay loop class="w-full rounded-lg shadow-lg">
+                            <source src="{{ video_url }}" type="video/mp4">
+                            Tarayıcınız video etiketini desteklemiyor.
+                        </video>
+                        <div id="videoError" class="video-error hidden">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-red-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="text-xl font-medium text-red-400 phantom-text-regular text-center mx-auto">Video yüklenemedi</p>
+                            <p class="text-gray-400 mt-2 phantom-text-regular text-center mx-auto">Lütfen tekrar deneyin veya yeni bir video oluşturun</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 text-center flex justify-center space-x-4">
+                        <a id="downloadBtn" href="{{ video_url }}" download class="button-glow inline-block py-3 px-5 w-36 bg-[#131313] text-white font-medium rounded-lg border border-[#333333] hover:bg-[#131313] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#80CBC4] focus:ring-opacity-50 phantom-text-regular text-center flex items-center justify-center">
+                            Videoyu İndir
+                        </a>
+                        <button id="addAudioBtn" class="button-glow inline-block py-3 px-5 w-36 bg-[#80CBC4] hover:bg-[#80CBC4] text-[#131313] phantom-text rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#80CBC4] focus:ring-opacity-50 phantom-text-regular text-center">
+                            Videoya Ses Ekle
+                        </button>
+                        <a href="{{ url_for('index') }}" class="button-glow inline-block py-3 px-5 w-36 bg-[#131313] text-white font-medium rounded-lg border border-[#333333] hover:bg-[#131313] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#80CBC4] focus:ring-opacity-50 phantom-text-regular text-center flex items-center justify-center">
+                            Yeni Video Oluştur
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Prompt Düzenleme Alanı -->
+        <div class="max-w-3xl mx-auto card rounded-xl shadow-2xl overflow-hidden mt-10">
+            <div class="p-6">
+                <h2 class="text-3xl font-bold text-[#80CBC4] mb-6 phantom-text text-center mx-auto">Prompt'u Düzenle</h2>
+                <form id="regenerateForm" class="space-y-4">
+                    <div>
+                        <label for="promptInput" class="block text-gray-300 mb-2 font-medium phantom-text-regular">Prompt</label>
+                        <textarea id="promptInput" name="prompt" rows="3" class="w-full px-4 py-3 bg-[#131313] border border-[#333333] rounded-lg focus:outline-none focus:border-[#80CBC4] text-gray-100 phantom-text-regular">{{ prompt }}</textarea>
+                        <input type="hidden" name="brand_input" value="{{ brand }}">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-300 mb-2 font-medium text-center phantom-text-regular">Video Boyutu</label>
+                        <div class="aspect-ratio-selector grid grid-cols-2 gap-6 max-w-lg mx-auto">
+                            <label class="aspect-ratio-option flex flex-col items-center p-4 rounded-lg cursor-pointer transition-all selected">
+                                <input type="radio" name="aspect_ratio" value="9:16" class="sr-only aspect-ratio-input" checked>
+                                <div class="w-12 h-16 bg-gray-500 rounded-sm mb-2 flex items-center justify-center">
+                                    <div class="w-8 h-14 bg-gray-300 rounded-sm"></div>
+                                </div>
+                                <span class="text-gray-300 font-medium phantom-text-regular text-center mx-auto">9:16</span>
+                                <span class="text-gray-400 text-xs mt-1 phantom-text-regular text-center mx-auto">Dikey (Instagram Reels, TikTok)</span>
+                            </label>
+                            <label class="aspect-ratio-option flex flex-col items-center p-4 rounded-lg cursor-pointer transition-all">
+                                <input type="radio" name="aspect_ratio" value="16:9" class="sr-only aspect-ratio-input">
+                                <div class="w-16 h-9 bg-gray-500 rounded-sm mb-2 flex items-center justify-center">
+                                    <div class="w-14 h-7 bg-gray-300 rounded-sm"></div>
+                                </div>
+                                <span class="text-gray-300 font-medium phantom-text-regular text-center mx-auto">16:9</span>
+                                <span class="text-gray-400 text-xs mt-1 phantom-text-regular text-center mx-auto">Yatay (YouTube, Instagram)</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label class="block text-gray-300 mb-2 font-medium text-center phantom-text-regular">Video Süresi</label>
+                        <div class="max-w-[150px] mx-auto">
+                            <select id="videoDuration" name="duration" class="w-full px-3 py-2 bg-[#131313] border border-[#333333] rounded-lg text-gray-100 hover:bg-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#80CBC4] phantom-text-regular">
+                                <option value="5s" selected>5 saniye</option>
+                                <option value="6s">6 saniye</option>
+                                <option value="7s">7 saniye</option>
+                                <option value="8s">8 saniye</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="regenerate-btn-container flex justify-center mt-6">
+                        <button type="submit" class="button-glow py-3 px-8 bg-[#131313] text-white font-medium rounded-lg border border-[#333333] hover:bg-[#1a1a1a] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#80CBC4] focus:ring-opacity-50 phantom-text-regular text-center">Tekrar Üret</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <footer class="mt-12 text-center text-gray-500 text-sm phantom-text-regular">
+            <p class="phantom-text" style="text-align: center; font-size: 14px; opacity: 0.5;">© 2025 | Agentic Creative Suite powered by <b>Consciouslab</b></p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('generatedVideo');
+            const videoLoading = document.getElementById('videoLoading');
+            const videoError = document.getElementById('videoError');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const regenerateForm = document.getElementById('regenerateForm');
+            
+            // Credit management
+            let lastKnownCreditId = null;
+            async function fetchCurrentCredit() {
+                try {
+                    console.log('Fetching credit from backend API...');
+                    const response = await fetch('/api/get-credit');
+                    
+                    if (!response.ok) {
+                        throw new Error(`API error: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('API response:', data);
+                    
+                    if (data.success) {
+                        const currentCredit = data.credit;
+                        const currentId = data.id;
+                        const createdAt = data.created_at;
+                        
+                        console.log('Güncel Kredi Değeri:', currentCredit);
+                        console.log('Kredi Kaydı ID:', currentId);
+                        console.log('Oluşturulma Zamanı:', createdAt);
+                        document.querySelector('#creditDisplay span').textContent = `Credits: ${currentCredit}`;
+                        lastKnownCreditId = currentId;
+                    } else {
+                        console.log('Hiç kredi kaydı bulunamadı veya hata oluştu');
+                        document.querySelector('#creditDisplay span').textContent = 'Credits: 0';
+                    }
+                } catch (error) {
+                    console.error('Kredi değeri alınamadı:', error);
+                    document.querySelector('#creditDisplay span').textContent = 'Credits: Hata';
+                }
+            }
+
+            function setupRealtimeUpdates() {
+                try {
+                    console.log('Setting up SSE connection...');
+                    let eventSource = null;
+                    
+                    // Only establish connection when page is visible
+                    function connectSSE() {
+                        if (eventSource) {
+                            return; // Already connected
+                        }
+                        
+                        console.log('Establishing SSE connection for credit updates');
+                        eventSource = new EventSource('/api/listen-credit-changes');
+                        
+                        eventSource.onmessage = function(event) {
+                            if (event.data && event.data.trim()) {
+                                console.log('SSE message received:', event);
+                                try {
+                                    const data = JSON.parse(event.data);
+                                    
+                                    if (data.error) {
+                                        console.error('SSE error:', data.error);
+                                        return;
+                                    }
+                                    
+                                    if (data.id && data.id !== lastKnownCreditId) {
+                                        console.log('New credit record detected:', data);
+                                        lastKnownCreditId = data.id;
+                                        const creditValue = data.credit || 0;
+                                        document.querySelector('#creditDisplay span').textContent = `Credits: ${creditValue}`;
+                                    }
+                                } catch (error) {
+                                    console.error('Error processing SSE message:', error);
+                                }
+                            }
+                        };
+                        
+                        eventSource.onerror = function(error) {
+                            console.error('SSE connection error:', error);
+                            disconnectSSE();
+                            
+                            // Try to reconnect after 5 seconds
+                            setTimeout(connectSSE, 5000);
+                        };
+                    }
+                    
+                    function disconnectSSE() {
+                        if (eventSource) {
+                            console.log('Closing SSE connection');
+                            eventSource.close();
+                            eventSource = null;
+                        }
+                    }
+                    
+                    // Connect when page is visible, disconnect when hidden
+                    document.addEventListener('visibilitychange', function() {
+                        if (document.visibilityState === 'visible') {
+                            connectSSE();
+                            // Refresh credit info immediately when page becomes visible
+                            fetchCurrentCredit();
+                        } else {
+                            disconnectSSE();
+                        }
+                    });
+                    
+                    // Initial connection if page is visible
+                    if (document.visibilityState === 'visible') {
+                        connectSSE();
+                    }
+                    
+                    window.addEventListener('beforeunload', disconnectSSE);
+                } catch (error) {
+                    console.error('Error setting up SSE:', error);
+                }
+            }
+
+            fetchCurrentCredit();
+            setupRealtimeUpdates();
+
+            const checkInterval = 60000; // 1 minute (just as a fallback)
+            const fallbackChecker = setInterval(fetchCurrentCredit, checkInterval);
+            
+            window.addEventListener('beforeunload', () => {
+                clearInterval(fallbackChecker);
+            });
+            
+            // Video boyutu seçimi için
+            const aspectRatioInputs = document.querySelectorAll('.aspect-ratio-input');
+            const aspectRatioOptions = document.querySelectorAll('.aspect-ratio-option');
+            
+            // Sayfa yüklendiğinde varsayılan seçimi işaretle
+            updateSelectedAspectRatio();
+            
+            // Her bir radio input için event listener ekle
+            aspectRatioInputs.forEach(input => {
+                input.addEventListener('change', updateSelectedAspectRatio);
+            });
+            
+            // Seçilen aspect ratio'yu güncelle
+            function updateSelectedAspectRatio() {
+                aspectRatioOptions.forEach(option => {
+                    const input = option.querySelector('input');
+                    if (input.checked) {
+                        option.classList.add('selected');
+                    } else {
+                        option.classList.remove('selected');
+                    }
+                });
+            }
+            
+            // Video yüklendiğinde
+            video.addEventListener('loadeddata', function() {
+                videoLoading.classList.add('hidden');
+                video.classList.remove('hidden');
+            });
+            
+            // Video yüklenme hatası
+            video.addEventListener('error', function() {
+                videoLoading.classList.add('hidden');
+                videoError.classList.remove('hidden');
+                console.error('Video yüklenirken bir hata oluştu');
+            });
+            
+            // 10 saniye sonra hala yüklenmemişse hata göster
+            setTimeout(function() {
+                if (video.readyState === 0) {
+                    videoLoading.classList.add('hidden');
+                    videoError.classList.remove('hidden');
+                    console.error('Video yükleme zaman aşımı');
+                }
+            }, 10000);
+            
+            // Yeniden video oluşturma formu gönderildiğinde
+            regenerateForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Form verilerini al
+                const prompt = document.getElementById('promptInput').value.trim();
+                const aspectRatio = document.querySelector('input[name="aspect_ratio"]:checked').value;
+                const duration = document.getElementById('videoDuration').value;
+                const brand = "{{ brand }}";
+                
+                if (!prompt) {
+                    alert("Lütfen geçerli bir prompt girin.");
+                    return;
+                }
+                
+                // Yükleme durumunu göster
+                videoLoading.classList.remove('hidden');
+                video.classList.add('hidden');
+                videoError.classList.add('hidden');
+                
+                // API isteği için form verilerini hazırla
+                const formData = new FormData();
+                formData.append('prompt', prompt);
+                formData.append('brand_input', brand);
+                formData.append('aspect_ratio', aspectRatio);
+                formData.append('duration', duration);
+                formData.append('content_type', 'creative-scene');
+                
+                // API isteği gönder
+                fetch('/generate_video', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.error || 'Video oluşturulurken bir hata oluştu.');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Başarılı yanıt - videoyu güncelle
+                    const videoUrl = data.video_url;
+                    
+                    // Video kaynağını güncelle
+                    video.src = videoUrl;
+                    video.load(); // Videoyu yeniden yükle
+                    
+                    // İndirme bağlantısını güncelle
+                    if (downloadBtn) {
+                        downloadBtn.href = videoUrl;
+                    }
+                    
+                    // Video yüklendiğinde yükleme animasyonunu gizle
+                    video.onloadeddata = function() {
+                        videoLoading.classList.add('hidden');
+                        video.classList.remove('hidden');
+                    };
+                })
+                .catch(error => {
+                    // Hata durumunda
+                    videoLoading.classList.add('hidden');
+                    video.classList.remove('hidden');
+                    alert('Video oluşturulurken bir hata oluştu: ' + error.message);
+                    console.error('Error:', error);
+                });
+            });
+
+            // Add event listener for "Videoya Ses Ekle" button
+            const addAudioBtn = document.getElementById('addAudioBtn');
+            if (addAudioBtn) {
+                addAudioBtn.addEventListener('click', function() {
+                    const currentVideoUrl = document.getElementById('generatedVideo').currentSrc;
+                    showAudioPrompt(currentVideoUrl);
+                });
+            }
+        });
+
+        // Add showAudioPrompt function according to audio-to-video service container rules
+        function showAudioPrompt(videoUrl) {
+            const existing = document.getElementById('audioPromptContainer');
+            if (existing) {
+                existing.remove();
+                return;
+            }
+            const container = document.createElement('div');
+            container.id = 'audioPromptContainer';
+            container.className = 'mt-4 w-full bg-[#131313] p-4 rounded-lg shadow-lg ring-1 ring-[#80CBC4] ring-opacity-50';
+            container.innerHTML = `
+                <textarea id="audioPromptInput" rows="4" class="w-full px-4 py-2 bg-[#131313] border border-[#333333] rounded-lg focus:outline-none text-gray-100 phantom-text-regular" placeholder="Ses eklemek için İngilizce prompt girin..."></textarea>
+                <div class="mt-2 text-right">
+                    <button id="sendAudioBtn" class="px-4 py-2 bg-[#80CBC4] hover:bg-[#80CBC4] text-[#131313] phantom-text font-semibold rounded-md shadow ring-1 ring-[#80CBC4] hover:ring-2 transition-shadow duration-200 flex items-center justify-center w-24">Gönder</button>
+                </div>
+            `;
+            const videoResult = document.getElementById('videoResult');
+            videoResult.appendChild(container);
+            document.getElementById('sendAudioBtn').onclick = async function(e) {
+                e.preventDefault();
+                const promptText = document.getElementById('audioPromptInput').value.trim();
+                if (!promptText) {
+                    alert('Lütfen bir ses promptu girin.');
+                    return;
+                }
+                const sendBtn = this;
+                sendBtn.disabled = true;
+                sendBtn.textContent = 'İşleniyor...';
+                container.innerHTML = `
+                    <div class="flex flex-col items-center">
+                        <div class="prompt-loader mb-4">
+                            <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                        </div>
+                        <p class="text-lg phantom-text-regular loading-text mt-4">Ses ekleniyor...</p>
+                    </div>
+                `;
+                try {
+                    const response = await fetch('/add-audio-to-video', {
+                        method: 'POST', headers: {'Content-Type':'application/json'},
+                        body: JSON.stringify({
+                            video_url: videoUrl, 
+                            prompt: promptText,
+                            content_type: 'creative-scene'
+                        })
+                    });
+                    const result = await response.json();
+                    console.log('Audio-to-video response:', result);
+                    
+                    let newVideoUrl = null;
+                    // Check different possible response structures
+                    if (response.ok) {
+                        if (result.success && result.result && result.result.video_url) {
+                            newVideoUrl = result.result.video_url;
+                            console.log('Found URL in result.result.video_url:', newVideoUrl);
+                        } 
+                        else if (result.success && result.result && result.result.audio_video_url) {
+                            newVideoUrl = result.result.audio_video_url;
+                            console.log('Found URL in result.result.audio_video_url:', newVideoUrl);
+                        }
+                        else if (result.video_url) {
+                            newVideoUrl = result.video_url;
+                            console.log('Found URL in result.video_url:', newVideoUrl);
+                        }
+                        else if (result.audio_video_url) {
+                            newVideoUrl = result.audio_video_url;
+                            console.log('Found URL in result.audio_video_url:', newVideoUrl);
+                        }
+                        else if (typeof result === 'string' && result.includes('http')) {
+                            newVideoUrl = result;
+                            console.log('Found URL in result string:', newVideoUrl);
+                        }
+                    }
+                    
+                    if (newVideoUrl) {
+                        container.innerHTML = `
+                            <h3 class="text-2xl phantom-text text-center mb-4 text-[#80CBC4]">Ses Eklenen Video</h3>
+                            <div id="generatedAudioVideoGrid" class="grid grid-cols-1 gap-4">
+                                <video src="${newVideoUrl}" controls autoplay loop class="w-full rounded-lg shadow-lg mb-4 object-contain" style="max-height:400px;"></video>
+                                <div class="flex justify-center mt-2">
+                                    <button id="downloadAudioVideoBtn" class="px-6 py-3 bg-[#131313] hover:bg-[#131313] text-white phantom-text-regular rounded-lg flex items-center justify-center space-x-2 ring-1 ring-[#80CBC4] hover:ring-2 transition-shadow duration-300">Videoyu İndir</button>
+                                </div>
+                            </div>
+                        `;
+                        document.getElementById('downloadAudioVideoBtn').addEventListener('click', () => window.open(newVideoUrl, '_blank'));
+                    } else {
+                        console.error('No video URL found in response:', result);
+                        let errorMessage = 'Ses eklenemedi';
+                        if (result.error) {
+                            errorMessage = result.error;
+                            console.error('Error from backend:', result.error);
+                        } else if (result.message) {
+                            errorMessage = result.message;
+                            console.error('Message from backend:', result.message);
+                        }
+                        container.innerHTML = `<div class="text-red-400 text-center p-6">${errorMessage}</div>`;
+                    }
+                } catch (err) {
+                    console.error('❌ Ses ekleme hatası:', err);
+                    console.error('Error details:', err.message);
+                    container.innerHTML = `
+                        <div class="text-red-400 text-center p-6">
+                            <p class="mb-2">Hata oluştu</p>
+                            <p class="text-xs opacity-70">${err.message}</p>
+                        </div>
+                    `;
+                }
+            };
+        }
+    </script>
+</body>
+</html> 

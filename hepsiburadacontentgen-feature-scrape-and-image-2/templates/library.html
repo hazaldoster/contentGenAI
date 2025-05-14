@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'PhantomSansRegular', sans-serif;
+            background: url('/static/hbbg3.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #fff;
+            padding-top: 20px;
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #f2EDE8, #e8e2d4, #f2EDE8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .tab-bar {
+            background: #252525;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button:hover {
+            transform: translateY(-2px);
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+        .filter-btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            color: #131313;
+        }
+        .filter-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+        .filter-btn.active {
+            border-color: transparent;
+            box-shadow: 0 0 10px rgba(242, 237, 232, 0.6);
+        }
+        .count {
+            opacity: 0.7;
+            margin-left: 0.25rem;
+        }
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .media-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            height: 300px;
+            cursor: pointer;
+            aspect-ratio: 1/1;
+        }
+        .media-item img, .media-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .media-item:hover img, .media-item:hover video {
+            transform: scale(1.05);
+        }
+        .media-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            padding: 1rem;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.4));
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .media-item:hover .media-overlay {
+            background: rgba(0,0,0,0.85);
+        }
+        .media-overlay .prompt-text {
+            color: white;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+        }
+        .media-item:hover .media-overlay .prompt-text {
+            -webkit-line-clamp: unset;
+            line-clamp: unset;
+            max-height: none;
+        }
+        .media-overlay .date-text {
+            font-size: 0.75rem;
+            line-height: 1rem;
+            color: #CBD5E0;
+            opacity: 0.8;
+        }
+        .media-overlay .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: auto;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        #modalMediaContainer img,
+        #modalMediaContainer video {
+            width: 100%;
+            height: auto;
+            max-height: 70vh;
+            object-fit: contain;
+        }
+        .modal-open {
+            overflow: hidden;
+        }
+        /* Content-type specific active button backgrounds */
+        .filter-btn.active[data-filter="product-visual"] {
+            background: #FF6F61;
+        }
+        .filter-btn.active[data-filter="creative-scene"] {
+            background: #80CBC4;
+        }
+        .filter-btn.active[data-filter="video-image"] {
+            background: #FFD166;
+        }
+        /* Section-specific card border colors */
+        .section-product-visual .card { border-color: #FF6F61; }
+        .section-creative-scene .card { border-color: #80CBC4; }
+        .section-video-image .card { border-color: #FFD166; }
+        /* Non-active filter buttons should have beige text */
+        .filter-btn:not(.active) {
+            color: #f2ede8;
+        }
+        /* Sub-filter buttons styling */
+        .sub-filter-btn {
+            padding: 0.4rem 1.25rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            color: #f2ede8;
+        }
+        .sub-filter-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+        .sub-filter-btn.active {
+            border-color: transparent;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 10px rgba(242, 237, 232, 0.4);
+        }
+        /* Style based on active main filter */
+        [data-active-filter="product-visual"] .sub-filter-btn.active {
+            border-color: #FF6F61;
+            box-shadow: 0 0 10px rgba(255, 111, 97, 0.4);
+        }
+        [data-active-filter="creative-scene"] .sub-filter-btn.active {
+            border-color: #80CBC4;
+            box-shadow: 0 0 10px rgba(128, 203, 196, 0.4);
+        }
+        [data-active-filter="video-image"] .sub-filter-btn.active {
+            border-color: #FFD166;
+            box-shadow: 0 0 10px rgba(255, 209, 102, 0.4);
+        }
+        /* Phantom font definitions */
+        @font-face {
+            font-family: 'PhantomSans';
+            src: url('/static/fonts/PhantomSans0.8-Medium.otf') format('opentype');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'PhantomSansBold';
+            src: url('/static/fonts/PhantomSans0.8-Bold.otf') format('opentype');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'PhantomSansRegular';
+            src: url('/static/fonts/PhantomSans0.8-Regular.otf') format('opentype');
+            font-display: swap;
+        }
+        .phantom-text {
+            font-family: 'PhantomSans', sans-serif;
+            letter-spacing: -0.01em;
+        }
+        .phantom-text-regular {
+            font-family: 'PhantomSansRegular', sans-serif;
+            letter-spacing: -0.01em;
+        }
+        .media-item.filtered-out {
+            display: none !important;
+        }
+        .audio-placeholder {
+            background: linear-gradient(135deg, rgba(20,20,20,0.7) 0%, rgba(40,40,40,0.7) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        .audio-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.7;
+        }
+        .media-item[data-type="audio"] .media-overlay {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .media-item[data-type="audio"] audio {
+            width: 100%;
+            outline: none;
+            margin-top: 0.75rem;
+            opacity: 0.9;
+            border-radius: 0.25rem;
+            background: rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="phantom-text-regular">
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex items-center mb-6">
+            <a href="{{ url_for('home_direct') }}" class="text-white text-sm hover:underline flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Home Page
+            </a>
+        </div>
+
+        <header class="mb-12 text-center">
+            <h1 class="text-4xl phantom-text text-center font-bold gradient-text mb-2">Content Library</h1>
+        </header>
+
+        <!-- Main Filter Buttons -->
+        <div class="flex flex-wrap gap-4 mb-8">
+            <button class="filter-btn active" data-filter="product-visual">
+                Link to Look <span class="count"></span>
+            </button>
+            <button class="filter-btn" data-filter="creative-scene">
+                CinematicMind <span class="count"></span>
+            </button>
+            <button class="filter-btn" data-filter="video-image">
+                Frame Crafter <span class="count"></span>
+            </button>
+        </div>
+
+        <!-- Sub-filter Buttons (hidden by default) -->
+        <div id="sub-filters" class="flex flex-wrap gap-4 mb-8 hidden">
+            <button class="sub-filter-btn active" data-type="image">
+                Image <span class="sub-count"></span>
+            </button>
+            <button class="sub-filter-btn" data-type="video">
+                Video <span class="sub-count"></span>
+            </button>
+            <button class="sub-filter-btn" data-type="audio">
+                Audio <span class="sub-count"></span>
+            </button>
+        </div>
+
+        <!-- Search and Sort -->
+        <div class="flex flex-col md:flex-row gap-4 mb-8">
+            <div class="flex-1">
+                <div class="relative">
+                    <input type="text" placeholder="Search by prompt or date..." class="w-full px-4 py-2 bg-[#131313] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f2EDE8] text-gray-100">
+                    <svg class="absolute right-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+            </div>
+            <div class="flex-none">
+                <select class="px-4 py-2 bg-[#131313] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f2EDE8] text-gray-100">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="media-sections">
+            <!-- Combined Media Grid -->
+            <div class="media-grid">
+                {% for item in media_items %}
+                <div class="media-item card" data-type="{{ item.type }}" data-content-type="{{ item.content_type }}" data-id="{{ item.id }}">
+                    {% if item.type == 'video' %}
+                    <video data-src="{{ item.url }}" controls muted loop onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"></video>
+                    <div class="hidden items-center justify-center h-full bg-gray-800 text-gray-400">
+                        <span>Video not available</span>
+                    </div>
+                    {% elif item.type == 'image' %}
+                    <img data-src="{{ item.url }}" alt="{{ item.prompt }}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200?text=Image+Not+Found'">
+                    {% elif item.type == 'audio' %}
+                    <div class="audio-placeholder flex items-center justify-center h-full bg-gray-800">
+                        <i class="ri-volume-up-fill text-5xl text-gray-400"></i>
+                        <audio data-src="{{ item.url }}" controls class="hidden"></audio>
+                        {% if '.mp4' in item.url or '.mov' in item.url %}
+                        <video data-src="{{ item.url }}" class="hidden" controls></video>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    <div class="media-overlay">
+                        <p class="date-text">{{ item.date }}</p>
+                        <p class="prompt-text">{{ item.prompt }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Empty state when no items match filters -->
+            <div id="empty-state" class="empty-state hidden">
+                <i class="ri-inbox-line text-4xl text-gray-500 mb-4"></i>
+                <p class="text-xl font-medium text-gray-300 mb-2">No items found</p>
+                <p class="text-gray-400">Try changing your filters or search criteria</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination Controls at Bottom -->
+    <div class="mt-12 mb-8">
+        <div class="flex justify-center items-center">
+            <div class="flex items-center mr-8">
+                <label for="itemsPerPage" class="text-sm text-gray-300 mr-2">Items per page:</label>
+                <select id="itemsPerPage" class="px-2 py-1 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f2EDE8] text-gray-100">
+                    <option value="12">12</option>
+                    <option value="24">24</option>
+                    <option value="48">48</option>
+                </select>
+            </div>
+            <div id="paginationControls" class="flex space-x-2"></div>
+        </div>
+    </div>
+
+    <!-- Add the modal HTML at the end of the body, before the closing body tag -->
+    <div id="mediaModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-75 transition-opacity" onclick="closeModal()"></div>
+        <div class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div class="relative transform overflow-hidden rounded-lg card shadow-xl transition-all max-w-4xl w-full">
+                    <!-- Close button -->
+                    <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white z-10">
+                        <i class="ri-close-line text-2xl"></i>
+                    </button>
+                    
+                    <!-- Modal content -->
+                    <div class="p-6">
+                        <div id="modalMediaContainer" class="relative aspect-video mb-4">
+                            <!-- Media content will be inserted here -->
+                        </div>
+                        <div class="text-white">
+                            <p id="modalPrompt" class="text-base mb-2 text-gray-200"></p>
+                            <p id="modalDate" class="text-xs text-gray-400"></p>
+                        </div>
+                        <div class="mt-4 flex gap-3">
+                            <a id="modalDownload" href="#" download
+                                class="px-4 py-2 bg-[#f2EDE8] hover:bg-[#e8e2d4] rounded text-sm font-medium transition-colors flex items-center gap-2 text-gray-900">
+                                <i class="ri-download-2-line"></i>Download
+                            </a>
+                            <button id="modalDelete" class="px-4 py-2 bg-[#131313] border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f2EDE8] text-gray-100">
+                                <i class="ri-delete-bin-line"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables for active filters
+        let activeMainFilter = 'product-visual';
+        let activeSubFilter = 'image'; // Default sub-filter is image
+
+        // Move updateCounts to global scope
+        function updateCounts() {
+            // Main filter counts
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const mediaItems = document.querySelectorAll('.media-item');
+            filterButtons.forEach(btn => {
+                const filter = btn.dataset.filter;
+                const count = filter === 'all' 
+                    ? mediaItems.length 
+                    : document.querySelectorAll(`.media-item[data-content-type="${filter}"]`).length;
+                btn.querySelector('.count').textContent = `(${count})`;
+            });
+
+            // Sub-filter counts
+            const subFilterButtons = document.querySelectorAll('.sub-filter-btn');
+            subFilterButtons.forEach(btn => {
+                const type = btn.dataset.type;
+                let count = document.querySelectorAll(`.media-item[data-content-type="${activeMainFilter}"][data-type="${type}"]`).length;
+                btn.querySelector('.sub-count').textContent = `(${count})`;
+
+                // Apply visual styling for empty filters
+                if (count === 0) {
+                    btn.classList.add('empty-filter');
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'default';
+                } else {
+                    btn.classList.remove('empty-filter');
+                    btn.style.opacity = '1';
+                    btn.style.cursor = 'pointer';
+                }
+                
+                // Special case: hide Image sub-filter when CinematicMind is selected
+                if (type === 'image' && activeMainFilter === 'creative-scene') {
+                    btn.style.display = 'none';
+                } else {
+                    btn.style.display = 'block';
+                }
+            });
+        }
+
+        // Update filtering logic to handle main and sub filters
+        function updateFilters() {
+            console.log("Filtering with main:", activeMainFilter, "sub:", activeSubFilter);
+            const mediaItems = document.querySelectorAll('.media-item');
+            const emptyState = document.getElementById('empty-state');
+            let visibleCount = 0;
+            
+            mediaItems.forEach(item => {
+                const contentType = item.dataset.contentType;
+                const itemType = item.dataset.type;
+                
+                const matchMainFilter = contentType === activeMainFilter;
+                const matchSubFilter = itemType === activeSubFilter;
+                
+                const isVisible = matchMainFilter && matchSubFilter;
+                
+                // Direct style manipulation to ensure visibility change
+                if (isVisible) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+                
+                // Also toggle the class for CSS-based hiding
+                item.classList.toggle('filtered-out', !isVisible);
+            });
+            
+            // Show empty state if no items match
+            emptyState.classList.toggle('hidden', visibleCount > 0);
+            
+            // Reset pagination after filtering
+            resetPagination();
+        }
+        
+        // Show/hide sub filters
+        function toggleSubFilters(show) {
+            const subFiltersContainer = document.getElementById('sub-filters');
+            subFiltersContainer.classList.toggle('hidden', !show);
+            
+            // Set data attribute on sub-filters container for styling
+            if (show) {
+                subFiltersContainer.setAttribute('data-active-filter', activeMainFilter);
+            }
+        }
+
+        async function downloadMedia(url, filename) {
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = filename || 'download';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(downloadUrl);
+                document.body.removeChild(a);
+            } catch (error) {
+                console.error('Download failed:', error);
+                alert('Failed to download the file. Please try again.');
+            }
+        }
+
+        // Pagination functions
+        let currentPage = 1;
+        let itemsPerPage = 12;
+        
+        function setupPagination() {
+            const itemsPerPageSelect = document.getElementById('itemsPerPage');
+            itemsPerPage = parseInt(itemsPerPageSelect.value);
+            const visibleItems = getVisibleItems();
+            const totalPages = Math.ceil(visibleItems.length / itemsPerPage);
+            
+            // Create pagination controls
+            const paginationControls = document.getElementById('paginationControls');
+            paginationControls.innerHTML = '';
+            
+            // Add previous button
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'px-3 py-1 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed';
+            prevBtn.innerHTML = '&laquo; Prev';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    updateVisibleItems();
+                }
+            });
+            paginationControls.appendChild(prevBtn);
+            
+            // Add page buttons (with ellipsis for many pages)
+            const maxButtonsToShow = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxButtonsToShow / 2));
+            let endPage = Math.min(totalPages, startPage + maxButtonsToShow - 1);
+            
+            if (endPage - startPage + 1 < maxButtonsToShow && startPage > 1) {
+                startPage = Math.max(1, endPage - maxButtonsToShow + 1);
+            }
+            
+            // First page + ellipsis
+            if (startPage > 1) {
+                const firstBtn = createPageButton(1);
+                paginationControls.appendChild(firstBtn);
+                
+                if (startPage > 2) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.className = 'px-3 py-1 text-gray-400';
+                    ellipsis.textContent = '...';
+                    paginationControls.appendChild(ellipsis);
+                }
+            }
+            
+            // Page buttons
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = createPageButton(i);
+                paginationControls.appendChild(pageBtn);
+            }
+            
+            // Ellipsis + last page
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.className = 'px-3 py-1 text-gray-400';
+                    ellipsis.textContent = '...';
+                    paginationControls.appendChild(ellipsis);
+                }
+                
+                const lastBtn = createPageButton(totalPages);
+                paginationControls.appendChild(lastBtn);
+            }
+            
+            // Add next button
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'px-3 py-1 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed';
+            nextBtn.innerHTML = 'Next &raquo;';
+            nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+            nextBtn.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    updateVisibleItems();
+                }
+            });
+            paginationControls.appendChild(nextBtn);
+            
+            // Show page info
+            if (totalPages > 0) {
+                const pageInfo = document.createElement('span');
+                pageInfo.className = 'ml-4 text-sm text-gray-400';
+                const startItem = (currentPage - 1) * itemsPerPage + 1;
+                const endItem = Math.min(currentPage * itemsPerPage, visibleItems.length);
+                pageInfo.textContent = `${startItem}-${endItem} of ${visibleItems.length} items`;
+                paginationControls.appendChild(pageInfo);
+            }
+        }
+        
+        function createPageButton(pageNumber) {
+            const btn = document.createElement('button');
+            btn.className = `px-3 py-1 border rounded-lg focus:outline-none ${
+                pageNumber === currentPage 
+                    ? 'bg-[#f2EDE8] border-[#e8e2d4] text-gray-900' 
+                    : 'bg-gray-800 border-gray-700 hover:bg-gray-700 text-gray-200'
+            }`;
+            btn.textContent = pageNumber;
+            btn.addEventListener('click', () => {
+                currentPage = pageNumber;
+                updateVisibleItems();
+            });
+            return btn;
+        }
+        
+        function updateVisibleItems() {
+            const visibleItems = getVisibleItems();
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            
+            // Hide all items
+            visibleItems.forEach((item, index) => {
+                if (index >= start && index < end) {
+                    item.style.display = 'block';
+                    lazyLoadMedia(item);
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Re-setup audio items for newly visible content
+            setupAudioItems();
+            
+            // Update pagination controls
+            setupPagination();
+            
+            // Don't scroll to top when changing page
+        }
+        
+        function getVisibleItems() {
+            const searchTerm = document.querySelector('input[type="text"]').value.toLowerCase();
+            const items = Array.from(document.querySelectorAll('.media-item'));
+            
+            return items.filter(item => {
+                // Only include items that match our current main and sub filters
+                const contentType = item.dataset.contentType;
+                const itemType = item.dataset.type;
+                
+                const matchMainFilter = contentType === activeMainFilter;
+                const matchSubFilter = itemType === activeSubFilter;
+                
+                if (!matchMainFilter || !matchSubFilter) {
+                    return false;
+                }
+                
+                // Check search term if present
+                if (searchTerm) {
+                    const prompt = item.querySelector('.media-overlay p:last-of-type').textContent.toLowerCase();
+                    const date = item.querySelector('.media-overlay p:first-of-type').textContent.toLowerCase();
+                    return prompt.includes(searchTerm) || date.includes(searchTerm);
+                }
+                
+                return true;
+            });
+        }
+        
+        function resetPagination() {
+            currentPage = 1;
+            updateVisibleItems();
+        }
+        
+        // Lazy loading implementation
+        function lazyLoadMedia(mediaItem) {
+            const mediaElement = mediaItem.querySelector('img, video, audio');
+            
+            if (mediaElement && mediaElement.dataset.src && !mediaElement.src) {
+                // Create loading indicator if it doesn't exist
+                if (!mediaItem.querySelector('.loading-indicator')) {
+                    const loadingIndicator = document.createElement('div');
+                    loadingIndicator.className = 'loading-indicator absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-40';
+                    loadingIndicator.innerHTML = `
+                        <svg class="animate-spin h-10 w-10 text-[#f2EDE8]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    `;
+                    mediaItem.appendChild(loadingIndicator);
+                }
+                
+                // Set up event handlers
+                const loader = mediaItem.querySelector('.loading-indicator');
+                
+                // Load the media
+                mediaElement.src = mediaElement.dataset.src;
+                
+                // Handle successful load
+                mediaElement.addEventListener('load', () => {
+                    if (loader) loader.remove();
+                });
+                
+                mediaElement.addEventListener('loadeddata', () => {
+                    if (loader) loader.remove();
+                });
+                
+                // Handle loading errors
+                mediaElement.addEventListener('error', () => {
+                    if (loader) loader.remove();
+                    // Show error placeholder
+                    if (mediaElement.tagName === 'IMG') {
+                        mediaElement.src = 'https://via.placeholder.com/300x200?text=Image+Not+Found';
+                    } else if (mediaElement.tagName === 'VIDEO') {
+                        mediaElement.style.display = 'none';
+                        mediaElement.nextElementSibling.style.display = 'flex';
+                    } else if (mediaElement.tagName === 'AUDIO') {
+                        mediaElement.closest('.audio-placeholder').innerHTML = `
+                            <i class="ri-volume-vibrate-line text-5xl text-gray-400"></i>
+                            <span class="text-gray-400 mt-2">Audio not available</span>
+                        `;
+                    }
+                });
+            }
+        }
+
+        // Handle audio item clicks
+        function setupAudioItems() {
+            document.querySelectorAll('.media-item[data-type="audio"]').forEach(audioItem => {
+                const placeholder = audioItem.querySelector('.audio-placeholder');
+                const audio = audioItem.querySelector('audio');
+                const video = audioItem.querySelector('video');
+                
+                if (placeholder) {
+                    placeholder.addEventListener('click', function(e) {
+                        // Only trigger if the click is directly on the placeholder (not the overlay)
+                        if (e.target.closest('.audio-placeholder') && !e.target.closest('.media-overlay')) {
+                            // Check if we have a video (for audio added to video)
+                            if (video) {
+                                video.classList.remove('hidden');
+                                video.play();
+                            } else if (audio) {
+                                audio.classList.remove('hidden');
+                                audio.play();
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const mediaItems = document.querySelectorAll('.media-item');
+            
+            console.log("Initial activeMainFilter:", activeMainFilter);
+            console.log("Initial activeSubFilter:", activeSubFilter);
+            
+            // Make sure 'video' is the active sub-filter if CinematicMind is selected
+            if (activeMainFilter === 'creative-scene' && activeSubFilter === 'image') {
+                activeSubFilter = 'video';
+            }
+            
+            // Debug: Log all media items
+            mediaItems.forEach(item => {
+                console.log("Media item:", item.dataset.id, 
+                            "Type:", item.dataset.type, 
+                            "Content Type:", item.dataset.contentType);
+            });
+            
+            // Initial setup
+            updateCounts();
+            updateFilters(); // Apply initial filters
+            resetPagination();
+
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    // Prevent default behavior that might cause page to scroll
+                    e.preventDefault();
+                    
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    activeMainFilter = this.dataset.filter;
+                    
+                    // Set activeSubFilter to 'video' when selecting CinematicMind
+                    if (activeMainFilter === 'creative-scene') {
+                        activeSubFilter = 'video';
+                    } else {
+                        // Find a valid sub-filter that has content
+                        const subFilters = document.querySelectorAll('.sub-filter-btn');
+                        let hasValidSubFilter = false;
+                        
+                        // First try to keep the current sub-filter if possible
+                        const currentTypeCount = document.querySelectorAll(
+                            `.media-item[data-content-type="${activeMainFilter}"][data-type="${activeSubFilter}"]`
+                        ).length;
+                        
+                        if (currentTypeCount > 0) {
+                            hasValidSubFilter = true;
+                        } else {
+                            // Try each sub-filter type in order (image, video, audio)
+                            for (const subFilter of subFilters) {
+                                const type = subFilter.dataset.type;
+                                const typeCount = document.querySelectorAll(
+                                    `.media-item[data-content-type="${activeMainFilter}"][data-type="${type}"]`
+                                ).length;
+                                
+                                if (typeCount > 0) {
+                                    activeSubFilter = type;
+                                    hasValidSubFilter = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Update active sub-filter button
+                    document.querySelectorAll('.sub-filter-btn').forEach(subBtn => {
+                        subBtn.classList.toggle('active', subBtn.dataset.type === activeSubFilter);
+                    });
+                    
+                    // Show sub-filters
+                    toggleSubFilters(true);
+                    
+                    // Update counts and apply filters
+                    updateCounts();
+                    updateFilters();
+                });
+            });
+            
+            // Sub-filter button event listeners
+            const subFilterButtons = document.querySelectorAll('.sub-filter-btn');
+            subFilterButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    // Prevent default behavior that might cause page to scroll
+                    e.preventDefault();
+                    
+                    const type = this.dataset.type;
+                    console.log("Clicked sub-filter:", type);
+                    
+                    // Always set the filter even if there are no items
+                    // This is more intuitive for the user
+                    subFilterButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    activeSubFilter = type;
+                    
+                    console.log("Set activeSubFilter to:", activeSubFilter);
+                    updateFilters();
+                });
+            });
+
+            // Show sub-filters on initial load for the active filter
+            toggleSubFilters(true);
+            updateCounts();
+
+            // Search functionality
+            const searchInput = document.querySelector('input[type="text"]');
+            searchInput.addEventListener('input', function() {
+                resetPagination();
+            });
+
+            // Sort functionality
+            const sortSelect = document.querySelector('select');
+            sortSelect.addEventListener('change', function() {
+                const sections = document.querySelectorAll('.media-sections > div');
+                
+                sections.forEach(section => {
+                    const mediaGrid = section.querySelectorAll('.media-grid');
+                    mediaGrid.forEach(grid => {
+                        const items = Array.from(grid.querySelectorAll('.media-item'));
+                        
+                        items.sort((a, b) => {
+                            const dateA = new Date(a.querySelector('.media-overlay p:first-of-type').textContent);
+                            const dateB = new Date(b.querySelector('.media-overlay p:first-of-type').textContent);
+                            
+                            return this.value === 'newest' ? dateB - dateA : dateA - dateB;
+                        });
+                        
+                        // Clear and re-append sorted items
+                        items.forEach(item => item.remove());
+                        items.forEach(item => grid.appendChild(item));
+                    });
+                });
+                
+                // Reset pagination after sorting
+                resetPagination();
+            });
+
+            // Items per page change handler
+            document.getElementById('itemsPerPage').addEventListener('change', function() {
+                itemsPerPage = parseInt(this.value);
+                resetPagination();
+            });
+
+            // Update all media card sections to use the download function
+            const downloadButtons = document.querySelectorAll('.action-buttons a[download]');
+            downloadButtons.forEach(button => {
+                button.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    const url = this.getAttribute('href');
+                    const mediaItem = this.closest('.media-item');
+                    const type = mediaItem.dataset.type;
+                    const prompt = mediaItem.querySelector('.prompt-text').textContent.slice(0, 30);
+                    const extension = type === 'video' ? '.mp4' : '.png';
+                    const filename = `${prompt}${extension}`;
+                    await downloadMedia(url, filename);
+                });
+            });
+
+            // Add click handlers for media items
+            document.querySelectorAll('.media-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    // Don't open modal if clicking on action buttons
+                    if (!e.target.closest('.action-buttons')) {
+                        openModal(this);
+                    }
+                });
+            });
+            
+            // Close modal on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+
+            // Setup audio items
+            setupAudioItems();
+        });
+
+        // Update delete functionality
+        async function deleteItem(id) {
+            try {
+                const response = await fetch(`/delete-generation/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.error || 'Failed to delete item');
+                }
+
+                // Remove the item from the UI
+                const item = document.querySelector(`[data-id="${id}"]`);
+                if (item) {
+                    item.remove();
+                    
+                    // Check if we need to refresh the page
+                    const remainingItems = document.querySelectorAll('.media-item');
+                    if (remainingItems.length === 0) {
+                        window.location.reload();
+                        return;
+                    }
+                    
+                    // Update the filter counts
+                    updateCounts();
+                    
+                    // Update section visibility
+                    updateFilters();
+                    
+                    // Reset pagination
+                    resetPagination();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message || 'Failed to delete item');
+            }
+        }
+
+        function openModal(mediaItem) {
+            const modal = document.getElementById('mediaModal');
+            const mediaContainer = document.getElementById('modalMediaContainer');
+            const modalPrompt = document.getElementById('modalPrompt');
+            const modalDate = document.getElementById('modalDate');
+            const modalDownload = document.getElementById('modalDownload');
+            const modalDelete = document.getElementById('modalDelete');
+            
+            // Get media information
+            let mediaUrl = mediaItem.querySelector('video, img, audio').dataset.src || mediaItem.querySelector('video, img, audio').src;
+            const prompt = mediaItem.querySelector('.prompt-text').textContent;
+            const date = mediaItem.querySelector('.date-text').textContent;
+            const type = mediaItem.dataset.type;
+            const itemId = mediaItem.dataset.id;
+            
+            // Clear previous content
+            mediaContainer.innerHTML = '';
+            
+            // Create and add media element
+            if (type === 'video') {
+                const video = document.createElement('video');
+                video.src = mediaUrl;
+                video.controls = true;
+                video.autoplay = true;
+                video.loop = true;
+                mediaContainer.appendChild(video);
+            } else if (type === 'image') {
+                const img = document.createElement('img');
+                img.src = mediaUrl;
+                img.alt = prompt;
+                mediaContainer.appendChild(img);
+            } else if (type === 'audio') {
+                // Check if the URL is a video file
+                if (mediaUrl.includes('.mp4') || mediaUrl.includes('.mov')) {
+                    // Use video player for audio content that's actually a video
+                    const video = document.createElement('video');
+                    video.src = mediaUrl;
+                    video.controls = true;
+                    video.autoplay = true;
+                    mediaContainer.appendChild(video);
+                } else {
+                    // Create a styled audio player for regular audio
+                    const audioWrap = document.createElement('div');
+                    audioWrap.className = 'audio-wrapper flex flex-col items-center justify-center p-6 bg-gray-800 rounded-lg';
+                    
+                    // Add audio icon
+                    const icon = document.createElement('i');
+                    icon.className = 'ri-volume-up-fill text-6xl text-gray-400 mb-4';
+                    audioWrap.appendChild(icon);
+                    
+                    // Add audio element
+                    const audio = document.createElement('audio');
+                    audio.src = mediaUrl;
+                    audio.controls = true;
+                    audio.autoplay = true;
+                    audio.className = 'w-full';
+                    audioWrap.appendChild(audio);
+                    
+                    mediaContainer.appendChild(audioWrap);
+                }
+            }
+            
+            // Update modal content
+            modalPrompt.textContent = prompt;
+            modalDate.textContent = date;
+            modalDownload.href = mediaUrl;
+            modalDelete.onclick = () => {
+                if (confirm('Are you sure you want to delete this item?')) {
+                    deleteItem(itemId);
+                    closeModal();
+                }
+            };
+            
+            // Show modal
+            modal.classList.remove('hidden');
+            document.body.classList.add('modal-open');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('mediaModal');
+            modal.classList.add('hidden');
+            document.body.classList.remove('modal-open');
+            
+            // Stop media if playing
+            const video = modal.querySelector('video');
+            if (video) {
+                video.pause();
+            }
+            
+            const audio = modal.querySelector('audio');
+            if (audio) {
+                audio.pause();
+            }
+        }
+    </script>
+</body>
+</html> 

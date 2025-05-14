@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="tr" style="background-color: #131313;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic Creative Suite</title>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap&subset=latin-ext" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap&subset=latin-ext" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- Store server variables as data attributes -->
+    <div id="server-data" 
+         data-auth-completed="{{ 'true' if auth_completed else 'false' }}"
+         style="display: none;"></div>
+    <script>
+        // More reliable refresh detection
+        (function() {
+            // Get server variables
+            const serverData = document.getElementById('server-data');
+            const authCompleted = serverData.getAttribute('data-auth-completed') === 'true';
+            
+            // Check URL parameters for navigation source
+            const urlParams = new URLSearchParams(window.location.search);
+            const fromHome = urlParams.get('source') === 'home';
+            
+            console.log("Auth completed:", authCompleted);
+            
+            // If coming from home route or completed auth, skip all redirect logic
+            if (fromHome || authCompleted) {
+                // Clear any previous load time but keep coming from intro flag
+                sessionStorage.removeItem('welcomePageLoadTime');
+                localStorage.setItem('comingFromIntro', 'true');
+                console.log("Coming from home or auth completed, skip redirect logic");
+                return;
+            }
+            
+            // Check for a refresh by seeing if we already have a timestamp
+            const hasLoadTime = sessionStorage.getItem('welcomePageLoadTime') !== null;
+            
+            if (!hasLoadTime) {
+                // First time loading the page in this session
+                sessionStorage.setItem('welcomePageLoadTime', Date.now().toString());
+                
+                // Check if we came from intro page
+                if (!localStorage.getItem('comingFromIntro')) {
+                    // Only redirect if not using back button (check referrer)
+                    if (!document.referrer.includes('/intro') && !document.referrer.includes('/home')) {
+                        console.log("Not coming from intro or home, redirecting to intro");
+                        window.location.href = '/';
+                    } else {
+                        // Coming from proper navigation, mark as coming from intro
+                        localStorage.setItem('comingFromIntro', 'true');
+                    }
+                }
+            } else {
+                // This is a refresh - page was already loaded in this session
+                console.log("Detected refresh");
+                
+                // Check if the refresh was intentional (F5, Ctrl+R)
+                // We use a flag to detect intentional refreshes
+                if (sessionStorage.getItem('intentionalRefresh') === 'true') {
+                    // Clear flag for next time
+                    sessionStorage.removeItem('intentionalRefresh');
+                    // Update timestamp instead of redirecting
+                    sessionStorage.setItem('welcomePageLoadTime', Date.now().toString());
+                } else {
+                    // This is a manual refresh (F5 or Refresh button)
+                    console.log("Manual refresh detected, redirecting to intro");
+                    // Clear the timestamp but keep login session intact
+                    sessionStorage.removeItem('welcomePageLoadTime');
+                    window.location.href = '/';
+                }
+            }
+        })();
+        
+        // Set flag for intentional refresh before unload
+        window.addEventListener('beforeunload', function(e) {
+            if (e.currentTarget.performance.navigation.type === 1) {
+                // Type 1 is reload
+                sessionStorage.setItem('intentionalRefresh', 'true');
+            }
+        });
+    </script>
+    <style>
+        html {
+            background-color: #131313;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            background: url('/static/hbbg3.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #f2ede8;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding-top: 60px; /* Adjust to match tab bar height */
+            
+            /* Geliştirilmiş fade in animasyonu - gaussian ve daha yavaş */
+            opacity: 0;
+            animation: fadeIn 1.2s cubic-bezier(0.39, 0.575, 0.565, 1) forwards;
+        }
+        
+        @keyframes fadeIn {
+            0% { 
+                opacity: 0; 
+                filter: blur(5px);
+            }
+            50% {
+                opacity: 0.6;
+                filter: blur(2px);
+            }
+            100% { 
+                opacity: 1;
+                filter: blur(0);
+            }
+        }
+        
+        /* Intro sayfasından geçiş için özel stil */
+        .seamless-transition {
+            animation: fadeIn 1.5s cubic-bezier(0.39, 0.575, 0.565, 1) forwards !important;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(90deg, #ff6b6b, #ffa1a1, #ffc6c6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            line-height: 1.3;
+            letter-spacing: -0.02em;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        /* Video card branding */
+        .card-video {
+            border-left: none;
+            background: #1e1e1e;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .card-video::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: #80CBC4;
+            border-top-left-radius: inherit;
+            border-bottom-left-radius: inherit;
+            box-shadow: 0 0 10px 3px rgba(128, 203, 196, 0.5);
+            z-index: 0;
+        }
+        /* Image card branding */
+        .card-image {
+            border-left: none;
+            background: #1e1e1e;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .card-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: #FF6F61;
+            border-top-left-radius: inherit;
+            border-bottom-left-radius: inherit;
+            box-shadow: 0 0 10px 3px rgba(255, 111, 97, 0.5);
+            z-index: 0;
+        }
+        /* Visual card branding */
+        .card-visual {
+            border-left: none;
+            background: #1e1e1e;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .card-visual::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: #FFD166;
+            border-top-left-radius: inherit;
+            border-bottom-left-radius: inherit;
+            box-shadow: 0 0 10px 3px rgba(255, 209, 102, 0.5);
+            z-index: 0;
+        }
+        /* Video icon theme */
+        .feature-icon-video {
+            background: #80CBC4;
+        }
+        /* Image icon theme */
+        .feature-icon-image {
+            background: #FF6F61;
+        }
+        /* Visual icon theme */
+        .feature-icon-visual {
+            background: #FFD166;
+        }
+        .btn-gradient {
+            background: linear-gradient(90deg, #ff6b6b, #ffc6c6);
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+        .feature-icon {
+            height: 50px;
+            width: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        
+        .title-container {
+            overflow: visible;
+            padding: 0.2em 0;
+        }
+        
+        .turkish-text {
+            font-feature-settings: "locl" on;
+            line-height: 1.4;
+            padding-bottom: 0.1em;
+        }
+        /* Tab Bar Styles */
+        .tab-bar {
+            background: #252525;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: 50px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button:hover {
+            transform: translateY(-2px);
+            text-shadow: 0 0 10px rgba(242, 237, 232, 0.6);
+            box-shadow: 0 0 12px rgba(242, 237, 232, 0.2);
+        }
+        .text-gray-400 {
+            color: #f2ede8;
+            opacity: 0.7;
+        }
+        footer.text-gray-500 {
+            color: #f2ede8;
+            opacity: 0.5;
+        }
+        /* Make sure content is positioned above the glow */
+        .card .feature-icon, .card h3, .card p {
+            position: relative;
+            z-index: 1;
+        }
+        /* Additional hover effect styles */
+        .card {
+            transform: translateY(0);
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            background: #151515 !important;
+        }
+        
+        /* Card hover border glow effects */
+        .card-video:hover {
+            border: 1px solid #80CBC4;
+            box-shadow: 0 0 15px rgba(128, 203, 196, 0.3);
+        }
+        
+        .card-image:hover {
+            border: 1px solid #FF6F61;
+            box-shadow: 0 0 15px rgba(255, 111, 97, 0.3);
+        }
+        
+        .card-visual:hover {
+            border: 1px solid #FFD166;
+            box-shadow: 0 0 15px rgba(255, 209, 102, 0.3);
+        }
+        .title-glow {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .title-glow:hover {
+            text-shadow: 0 0 15px rgba(242, 237, 232, 0.7);
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center p-2 md:p-4 overflow-x-hidden">
+    <!-- Tab Bar -->
+    <div class="tab-bar fixed top-0 left-0 w-full z-50 px-4 py-0">
+        <div class="container mx-auto flex justify-between items-center h-[60px]">
+            <div class="flex items-center">
+                <img src="/static/KREM_LOGO.png" alt="Consciouslab" class="h-4 mr-3" />
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="/library" class="tab-button flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#131313] hover:bg-[#1a1a1a] text-[#f2ede8] border border-[#333333]">
+                    <i class="ri-gallery-line text-lg"></i>
+                    <span class="phantom-text-regular">Library</span>
+                </a>
+                <div id="creditDisplay" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#131313] text-[#f2ede8] border border-[#333333]">
+                    <i class="ri-coin-line text-lg"></i>
+                    <span class="phantom-text-regular">Credits: Yükleniyor...</span>
+                </div>
+                <a href="/logout" class="tab-button flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#131313] hover:bg-[#1a1a1a] text-[#f2ede8] border border-[#333333]">
+                    <i class="ri-logout-box-line text-lg"></i>
+                    <span class="phantom-text-regular">Logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="container max-w-full sm:max-w-5xl mx-auto px-2 sm:px-4">
+        <header class="text-center mb-8 md:mb-12 mt-6 md:mt-8 px-1 title-container">
+            <h1 class="title-glow text-4xl sm:text-5xl lg:text-6xl px-0 max-w-full text-wrap break-words leading-relaxed py-2 turkish-text phantom-text" style="text-align: center; color: #f2ede8;">
+                Agentic Creative Suite
+            </h1>
+        </header>
+
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            <div id="videoButton" class="card card-video p-6 rounded-xl cursor-pointer transition-all duration-300 hover:bg-[#1e1e1e]">
+                <div class="feature-icon feature-icon-video">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#242424]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <h3 class="phantom-font mb-2">CinematicMind</h3>
+                <p class="text-gray-400 phantom-text">
+                    Prompt-to-Scene Video Creator</p>
+            </div>
+            
+            <div id="imageButton" class="card card-image p-6 rounded-xl cursor-pointer transition-all duration-300 hover:bg-[#1e1e1e]">
+                <div class="feature-icon feature-icon-image">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#242424]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                </div>
+                <h3 class="phantom-font mb-2">Link to Look</h3>
+                <p class="text-gray-400 phantom-text">
+                    AI-Powered Visuals for E-Commerce and Social Media
+                </p>
+            </div>
+
+            <div id="visualButton" class="card card-visual p-6 rounded-xl cursor-pointer transition-all duration-300 hover:bg-[#1e1e1e]">
+                <div class="feature-icon feature-icon-visual">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#242424]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <h3 class="phantom-font mb-2">Frame Crafter</h3>
+                <p class="text-gray-400 phantom-text">
+                    AI-Staged Visual Creator
+                </p>
+            </div>
+        </div>
+
+        <footer class="text-center text-gray-500 text-sm mb-8">
+            <p class="phantom-text" style="text-align: center; font-size: 14px; opacity: 0.5;">© 2025 | Agentic Creative Suite powered by <b>Consciouslab</b></p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if we're coming from intro page
+            const comingFromIntro = localStorage.getItem('comingFromIntro') === 'true';
+            
+            // Clear the flag
+            localStorage.removeItem('comingFromIntro');
+            
+            // Update session storage timestamp to avoid immediate redirect
+            sessionStorage.setItem('welcomePageLoadTime', Date.now().toString());
+            
+            // Apply transition class if coming from intro
+            if (comingFromIntro) {
+                document.body.classList.add('seamless-transition');
+            }
+            
+            let lastKnownCreditId = null;
+            async function fetchCurrentCredit() {
+                try {
+                    console.log('Fetching credit from backend API...');
+                    const response = await fetch('/api/get-credit');
+                    
+                    if (!response.ok) {
+                        throw new Error(`API error: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('API response:', data);
+                    
+                    if (data.success) {
+                        const currentCredit = data.credit;
+                        const currentId = data.id;
+                        const createdAt = data.created_at;
+                        
+                        console.log('Güncel Kredi Değeri:', currentCredit);
+                        console.log('Kredi Kaydı ID:', currentId);
+                        console.log('Oluşturulma Zamanı:', createdAt);
+                        document.querySelector('#creditDisplay span').textContent = `Credits: ${currentCredit}`;
+                        lastKnownCreditId = currentId;
+                    } else {
+                        console.log('Hiç kredi kaydı bulunamadı veya hata oluştu');
+                        document.querySelector('#creditDisplay span').textContent = 'Credits: 0';
+                    }
+                } catch (error) {
+                    console.error('Kredi değeri alınamadı:', error);
+                    document.querySelector('#creditDisplay span').textContent = 'Credits: Hata';
+                }
+            }
+
+            function setupRealtimeUpdates() {
+                try {
+                    console.log('Setting up SSE connection...');
+                    let eventSource = null;
+                    
+                    // Only establish connection when page is visible
+                    function connectSSE() {
+                        if (eventSource) {
+                            return; // Already connected
+                        }
+                        
+                        console.log('Establishing SSE connection for credit updates');
+                        eventSource = new EventSource('/api/listen-credit-changes');
+                        
+                        eventSource.onmessage = function(event) {
+                            if (event.data && event.data.trim()) {
+                                console.log('SSE message received:', event);
+                                try {
+                                    const data = JSON.parse(event.data);
+                                    
+                                    if (data.error) {
+                                        console.error('SSE error:', data.error);
+                                        return;
+                                    }
+                                    
+                                    if (data.id && data.id !== lastKnownCreditId) {
+                                        console.log('New credit record detected:', data);
+                                        lastKnownCreditId = data.id;
+                                        const creditValue = data.credit || 0;
+                                        document.querySelector('#creditDisplay span').textContent = `Credits: ${creditValue}`;
+                                    }
+                                } catch (error) {
+                                    console.error('Error processing SSE message:', error);
+                                }
+                            }
+                        };
+                        
+                        eventSource.onerror = function(error) {
+                            console.error('SSE connection error:', error);
+                            disconnectSSE();
+                            
+                            // Try to reconnect after 5 seconds
+                            setTimeout(connectSSE, 5000);
+                        };
+                    }
+                    
+                    function disconnectSSE() {
+                        if (eventSource) {
+                            console.log('Closing SSE connection');
+                            eventSource.close();
+                            eventSource = null;
+                        }
+                    }
+                    
+                    // Connect when page is visible, disconnect when hidden
+                    document.addEventListener('visibilitychange', function() {
+                        if (document.visibilityState === 'visible') {
+                            connectSSE();
+                            // Refresh credit info immediately when page becomes visible
+                            fetchCurrentCredit();
+                        } else {
+                            disconnectSSE();
+                        }
+                    });
+                    
+                    // Initial connection if page is visible
+                    if (document.visibilityState === 'visible') {
+                        connectSSE();
+                    }
+                    
+                    window.addEventListener('beforeunload', disconnectSSE);
+                } catch (error) {
+                    console.error('Error setting up SSE:', error);
+                }
+            }
+
+            fetchCurrentCredit();
+            setupRealtimeUpdates();
+
+            const checkInterval = 60000; // 1 minute (just as a fallback)
+            const fallbackChecker = setInterval(fetchCurrentCredit, checkInterval);
+            
+            window.addEventListener('beforeunload', () => {
+                clearInterval(fallbackChecker);
+            });
+
+            document.getElementById('videoButton').addEventListener('click', function() {
+                window.location.href = "{{ url_for('video') }}";
+            });
+            
+            document.getElementById('imageButton').addEventListener('click', function() {
+                window.location.href = "{{ url_for('image') }}";
+            });
+
+            document.getElementById('visualButton').addEventListener('click', function() {
+                window.location.href = "{{ url_for('image2') }}";
+            });
+        });
+    </script>
+</body>
+</html> 

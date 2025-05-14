@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="tr" style="background-color: #131313;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Agentic Creative Suite</title>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap&subset=latin-ext" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap&subset=latin-ext" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        html {
+            background-color: #131313;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            background: url('/static/hbbg3.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #f2ede8;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding-top: 60px;
+            opacity: 0;
+            animation: fadeIn 1.2s cubic-bezier(0.39, 0.575, 0.565, 1) forwards;
+        }
+        
+        @keyframes fadeIn {
+            0% { 
+                opacity: 0; 
+                filter: blur(5px);
+            }
+            50% {
+                opacity: 0.6;
+                filter: blur(2px);
+            }
+            100% { 
+                opacity: 1;
+                filter: blur(0);
+            }
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            background: #151515 !important;
+        }
+        
+        .auth-card {
+            border-left: none;
+            background: #1e1e1e;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: #f2ede8;
+            border-top-left-radius: inherit;
+            border-bottom-left-radius: inherit;
+            box-shadow: 0 0 10px 3px rgba(242, 237, 232, 0.5);
+            z-index: 0;
+        }
+        
+        .auth-card:hover {
+            border: 1px solid #f2ede8;
+            box-shadow: 0 0 15px rgba(242, 237, 232, 0.3);
+        }
+        
+        .button-login {
+            background: #1e1e1e;
+            color: #f2ede8;
+            border: 1px solid #f2ede8;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .button-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(242, 237, 232, 0.4);
+            background: #1e1e1e;
+            color: #f2ede8;
+        }
+        
+        .button-login:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(242, 237, 232, 0.4);
+            background: #1e1e1e;
+            color: #f2ede8;
+        }
+        
+        .button-login:active {
+            background: #1e1e1e;
+            color: #f2ede8;
+            transform: translateY(1px);
+            box-shadow: 0 0 10px rgba(242, 237, 232, 0.3);
+        }
+        
+        .button-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(242, 237, 232, 0.2), transparent);
+            transition: all 0.6s;
+            z-index: -1;
+        }
+        
+        .button-login:hover::before {
+            left: 100%;
+        }
+        
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(242, 237, 232, 0.2);
+            color: #f2ede8;
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #f2ede8;
+            box-shadow: 0 0 0 2px rgba(242, 237, 232, 0.2);
+        }
+        
+        .tab-bar {
+            background: #252525;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: 50px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button:hover {
+            transform: translateY(-2px);
+            text-shadow: 0 0 10px rgba(242, 237, 232, 0.6);
+            box-shadow: 0 0 12px rgba(242, 237, 232, 0.2);
+        }
+        @font-face {
+            font-family: 'PhantomSans';
+            src: url('/static/fonts/PhantomSans0.8-Medium.otf') format('opentype');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'PhantomSansBold';
+            src: url('/static/fonts/PhantomSans0.8-Bold.otf') format('opentype');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'PhantomSansRegular';
+            src: url('/static/fonts/PhantomSans0.8-Regular.otf') format('opentype');
+            font-display: swap;
+        }
+        .phantom-text {
+            font-family: 'PhantomSans', sans-serif;
+            letter-spacing: -0.01em;
+        }
+        .phantom-text-regular {
+            font-family: 'PhantomSansRegular', sans-serif;
+            letter-spacing: -0.01em;
+        }
+    </style>
+</head>
+<body class="bg-[#131313]">
+    <!-- Tab Bar -->
+    <header class="tab-bar fixed top-0 left-0 right-0 z-10 px-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="/static/KREM_LOGO.png" alt="KREM Logo" class="h-5">
+            </div>
+       
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-md">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold mb-4 phantom-text text-center" style="color: #f2ede8 !important;">Welcome Back</h1>
+            <p class="text-lg text-[#f2ede8] opacity-80 phantom-text-regular text-center" style="color: #f2ede8 !important;">Sign in to access the Agentic Creative Suite</p>
+        </div>
+
+        <div class="card auth-card p-6 md:p-8">
+            {% if error %}
+            <div class="bg-red-900 bg-opacity-30 border border-red-800 text-red-300 px-4 py-3 rounded-lg mb-6">
+                <p class="text-sm phantom-text-regular">{{ error }}</p>
+            </div>
+            {% endif %}
+            
+            <form action="/login" method="POST" class="space-y-6">
+                <div class="space-y-2">
+                    <label for="email" class="block text-sm font-medium text-[#f2ede8] phantom-text-regular">Email Address</label>
+                    <input type="email" id="email" name="email" required 
+                           class="input-field w-full px-4 py-3 rounded-lg text-sm phantom-text-regular" 
+                           placeholder="Enter your email">
+                </div>
+                
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label for="password" class="block text-sm font-medium text-[#f2ede8] phantom-text-regular">Password</label>
+                    </div>
+                    <input type="password" id="password" name="password" required 
+                           class="input-field w-full px-4 py-3 rounded-lg text-sm phantom-text-regular" 
+                           placeholder="Enter your password">
+                </div>
+
+                <div class="flex items-center">
+                    <input id="remember-me" name="remember-me" type="checkbox" 
+                           class="h-4 w-4 text-[#f2ede8] focus:ring-[#f2ede8] border-gray-600 rounded bg-gray-700">
+                    <label for="remember-me" class="ml-2 block text-sm text-[#f2ede8] phantom-text-regular">
+                        Remember me
+                    </label>
+                </div>
+
+                <div>
+                    <button type="submit" 
+                            class="button-login w-full flex justify-center py-3 px-4 rounded-lg text-sm font-medium phantom-text-regular" 
+                            style="-webkit-tap-highlight-color: transparent;">
+                        Sign in
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="mt-10 text-center text-[#f2ede8] opacity-50 text-xs pb-8">
+        <p class="phantom-text" style="text-align: center; font-size: 14px; opacity: 0.5;">© 2025 | Agentic Creative Suite powered by <b>Consciouslab</b></p>
+    </footer>
+
+    <script>
+        // Fetch credentials from external JSON file
+        let validCredentials = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            
+            // Preserve the comingFromIntro flag from localStorage
+            const comingFromIntro = localStorage.getItem('comingFromIntro');
+            
+            // Fetch the authentication configuration
+            fetch('/static/auth_config.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Credentials loaded successfully");
+                    validCredentials = data.validCredentials;
+                })
+                .catch(error => {
+                    console.error('Error loading credentials:', error);
+                });
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value.trim();
+                
+                // Check credentials against our JSON
+                if (email === validCredentials.email && password === validCredentials.password) {
+                    console.log("Credentials match! Submitting to server for session setup...");
+                    
+                    // Set the comingFromIntro flag to prevent redirect back to intro
+                    localStorage.setItem('comingFromIntro', 'true');
+                    console.log("Flag set: comingFromIntro = true");
+                    
+                    // Submit form to server to create session and redirect properly
+                    form.action = '/login';
+                    form.method = 'POST';
+                    form.submit();
+                } else {
+                    console.log("Invalid credentials");
+                    showError("Invalid credentials. Only specific users can access this system.");
+                }
+            });
+            
+            // Helper function to show error message
+            function showError(message) {
+                let errorDiv = document.querySelector('.bg-red-900');
+                
+                if (!errorDiv) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.className = 'bg-red-900 bg-opacity-30 border border-red-800 text-red-300 px-4 py-3 rounded-lg mb-6';
+                    errorDiv.innerHTML = `<p class="text-sm phantom-text-regular">${message}</p>`;
+                    const cardDiv = document.querySelector('.auth-card');
+                    cardDiv.insertBefore(errorDiv, cardDiv.firstChild);
+                } else {
+                    errorDiv.innerHTML = `<p class="text-sm phantom-text-regular">${message}</p>`;
+                    errorDiv.style.display = 'block';
+                }
+            }
+        });
+    </script>
+</body>
+</html> 

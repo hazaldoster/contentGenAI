@@ -1,0 +1,2078 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link to Look</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: url('/static/hbbg3.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #fff;
+            padding-top: 90px;
+            padding-bottom: 140px; /* Adjusted for 80px content height */
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #ff6b6b, #ffa1a1, #ffc6c6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .card {
+            background: #252525;
+            backdrop-filter: blur(10px);
+            border: 1px solid #FF6F61;
+        }
+        .btn-gradient {
+            background: linear-gradient(90deg, #ff6b6b, #ffc6c6);
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+        .selected-card {
+            animation: pulse-border 2s infinite;
+        }
+        
+        @keyframes pulse-border {
+            0% {
+                border-color: rgba(255, 111, 97, 0.3);
+            }
+            50% {
+                border-color: rgba(255, 111, 97, 0.8);
+            }
+            100% {
+                border-color: rgba(255, 111, 97, 0.3);
+            }
+        }
+        .breathing-gradient {
+            animation: breathing-gradient 3s ease-in-out infinite;
+        }
+        
+        @keyframes breathing-gradient {
+            0% {
+                opacity: 0.3;
+            }
+            50% {
+                opacity: 0.7;
+            }
+            100% {
+                opacity: 0.3;
+            }
+        }
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        .image-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+        .image-item:hover {
+            transform: translateY(-5px);
+        }
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s ease;
+        }
+        .image-item:hover img {
+            opacity: 0.9;
+        }
+        
+        .loader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .prompt-loader {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .prompt-loader div {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, #FF6F61, #ffa1a1);
+            animation: prompt-loader 1.2s linear infinite;
+        }
+        .prompt-loader div:nth-child(1) {
+            top: 8px;
+            left: 8px;
+            animation-delay: 0s;
+        }
+        .prompt-loader div:nth-child(2) {
+            top: 8px;
+            left: 32px;
+            animation-delay: -0.4s;
+        }
+        .prompt-loader div:nth-child(3) {
+            top: 8px;
+            left: 56px;
+            animation-delay: -0.8s;
+        }
+        .prompt-loader div:nth-child(4) {
+            top: 32px;
+            left: 8px;
+            animation-delay: -0.4s;
+        }
+        .prompt-loader div:nth-child(5) {
+            top: 32px;
+            left: 32px;
+            animation-delay: -0.8s;
+        }
+        .prompt-loader div:nth-child(6) {
+            top: 32px;
+            left: 56px;
+            animation-delay: -1.2s;
+        }
+        .prompt-loader div:nth-child(7) {
+            top: 56px;
+            left: 8px;
+            animation-delay: -0.8s;
+        }
+        .prompt-loader div:nth-child(8) {
+            top: 56px;
+            left: 32px;
+            animation-delay: -1.2s;
+        }
+        .prompt-loader div:nth-child(9) {
+            top: 56px;
+            left: 56px;
+            animation-delay: -1.6s;
+        }
+        @keyframes prompt-loader {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+        
+        .image-loader {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .image-loader:before, .image-loader:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid transparent;
+        }
+        .image-loader:before {
+            border-top-color: #FF6F61;
+            border-right-color: #ffa1a1;
+            animation: spin 1.5s linear infinite;
+        }
+        .image-loader:after {
+            border-bottom-color: #FF6F61;
+            border-left-color: #ffa1a1;
+            animation: spin 1s ease-in-out infinite reverse;
+        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg) scale(1);
+            }
+            50% {
+                transform: rotate(180deg) scale(1.1);
+            }
+            100% {
+                transform: rotate(360deg) scale(1);
+            }
+        }
+        
+        .loading-text {
+            font-weight: 500;
+            background: linear-gradient(90deg, #FF6F61, #ffa1a1, #FF6F61);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shine 2s linear infinite;
+        }
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+        #extractedImagesGrid img {
+            transition: transform 0.2s ease-in-out;
+        }
+        #extractedImagesGrid img:hover {
+            transform: scale(1.05);
+        }
+        .selected {
+            border-color: #FF6F61 !important;
+            box-shadow: 0 0 15px rgba(255, 111, 97, 0.5);
+            outline: 2px solid rgba(255, 111, 97, 0.7);
+            outline-offset: -2px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 50;
+            overflow: auto;
+        }
+        
+        .modal-content {
+            position: relative;
+            margin: auto;
+            padding: 20px;
+            max-width: 90%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .modal-content img {
+            max-width: 100%;
+            max-height: 75vh;
+            object-fit: contain;
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .modal-submit {
+            background: #FF6F61;
+            color: #131313;
+        }
+
+        .modal-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 111, 97, 0.3);
+        }
+
+        .modal-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-cancel:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #fff;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 51;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #extractedImagesGrid img {
+            cursor: zoom-in;
+        }
+        /* Tab Bar Styles - Updated for better positioning */
+        .tab-bar {
+            background: #252525;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            z-index: 9999 !important;
+            height: 60px !important; 
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button:hover {
+            transform: translateY(-2px);
+            text-shadow: 0 0 10px rgba(255, 111, 97, 0.5);
+        }
+        
+        /* Son Üretilen İçerikler için hover efekti */
+        .recent-content-bar {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: bottom;
+            z-index: 40;
+            max-height: 42px; /* Height for title only */
+            overflow: hidden;
+        }
+        
+        .recent-content-bar.expanded {
+            max-height: 80vh; /* Increased from 70vh */
+            transform: translateY(0);
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .recent-content-item {
+            position: relative;
+            overflow: hidden;
+            height: 240px; /* Increased from 220px to 280px */
+            width: 100%;
+            transition: all 0.3s ease-in-out;
+            border-radius: 0.375rem;
+            cursor: pointer;
+        }
+        
+        .recent-content-image,
+        .recent-content-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .recent-content-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1rem; 
+        }
+        
+        .recent-content-item:hover .recent-content-overlay {
+            opacity: 1;
+        }
+        
+        /* Kaydırmalı İçerikler İçin Stil */
+        .recent-content-scroll {
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            scrollbar-width: none; /* Firefox için */
+            -ms-overflow-style: none; /* IE ve Edge için */
+            padding-bottom: 10px;
+            white-space: nowrap;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .recent-content-scroll::-webkit-scrollbar {
+            display: none; /* Chrome, Safari ve Opera için */
+        }
+        
+        .recent-content-scroll .recent-content-item {
+            flex: 0 0 200px;
+            width: 200px;
+            white-space: normal;
+        }
+        
+        .scroll-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 5;
+        }
+        
+        .scroll-left {
+            left: 10px;
+        }
+        
+        .scroll-right {
+            right: 10px;
+        }
+        
+        .recent-content-bar:hover .scroll-indicator {
+            opacity: 0.8;
+        }
+        
+        .scroll-indicator:hover {
+            opacity: 1 !important;
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .recent-content-title {
+            color: white;
+            font-size: 0.875rem; /* Increased from 0.75rem */
+            font-weight: 500;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .recent-content-date {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem; /* Increased from 0.65rem */
+        }
+        
+        .button-glow {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .button-glow:hover {
+            box-shadow: 0 0 10px 1px rgba(255, 111, 97, 0.2);
+        }
+        
+        .button-glow:after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 111, 97, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        
+        .button-glow:hover:after {
+            opacity: 1;
+        }
+        
+        #generateBtn.button-glow:hover {
+            box-shadow: 0 0 10px 1px rgba(255, 111, 97, 0.3);
+        }
+        
+        #generateBtn.button-glow:after {
+            background: radial-gradient(circle, rgba(255, 111, 97, 0.1) 0%, transparent 70%);
+        }
+        /* Phantom font definitions */
+        @font-face {
+            font-family: 'PhantomSans';
+            src: url('/static/fonts/PhantomSans0.8-Medium.otf') format('opentype');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'PhantomSansBold';
+            src: url('/static/fonts/PhantomSans0.8-Bold.otf') format('opentype');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'PhantomSansRegular';
+            src: url('/static/fonts/PhantomSans0.8-Regular.otf') format('opentype');
+            font-display: swap;
+        }
+        .phantom-text {
+            font-family: 'PhantomSans', sans-serif;
+            letter-spacing: -0.01em;
+        }
+        .phantom-text-regular {
+            font-family: 'PhantomSansRegular', sans-serif;
+            letter-spacing: -0.01em;
+        }
+        .selected {
+            border-color: #FF6F61 !important;
+            box-shadow: 0 0 15px rgba(255, 111, 97, 0.5);
+            outline: 2px solid rgba(255, 111, 97, 0.7);
+            outline-offset: -2px;
+        }
+        
+        /* Image hover glow effect */
+        .image-hover-glow {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .image-hover-glow:hover {
+            box-shadow: 0 0 20px rgba(255, 111, 97, 0.6);
+            transform: translateY(-5px) scale(1.02);
+            z-index: 10;
+        }
+
+        /* Ensure smooth transition for content container */
+        #recentContentContainer {
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 0;
+        }
+
+        #recentContentContainer.visible {
+            opacity: 1;
+            max-height: 102vh;
+            padding: 1rem 0.5rem;
+        }
+    </style>
+    <script src="{{ url_for('static', filename='js/scrape.do.js') }}"></script>
+</head>
+<body class="text-gray-100 min-h-screen">
+    <!-- Fixed Navigation Bar -->
+    <nav style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: #252525; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); height: 60px; display: flex; align-items: center;">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <!-- Left side: Home link -->
+            <a href="{{ url_for('home_direct') }}" class="text-white hover:text-[#FF6F61] transition-colors flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span class="phantom-text-regular">Home Page</span>
+            </a>
+            
+            <!-- Right side: Actions -->
+            <div class="flex items-center gap-4">
+                <a href="/library" class="button-glow flex items-center gap-2 px-4 py-2 rounded-lg bg-[#131313] hover:bg-[#1a1a1a] border border-[#333333] transition-all duration-300">
+                    <i class="ri-gallery-line text-lg"></i>
+                    <span class="phantom-text-regular">Library</span>
+                </a>
+                <div id="creditDisplay" class="button-glow inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#131313] text-white border border-[#333333]">
+                    <i class="ri-coin-line text-lg"></i>
+                    <span class="phantom-text-regular">Credits: Yükleniyor...</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="container mx-auto px-4 py-8 mt-4">
+        <header class="mb-12 text-center">
+            <h1 class="text-5xl font-bold text-[#FF6F61] mb-2 phantom-text text-center mx-auto">Link to Look</h1>
+            <p class="text-gray-400 max-w-2xl phantom-text-regular text-center mx-auto"">Paste your product link. Get stunning visuals. LinktoLook crafts scroll-stopping product
+                images and promo videos directly from any URL. Ideal for performance marketing,
+                launches, and all things shoppable.</p>
+        </header>
+
+        <div class="max-w-6xl mx-auto rounded-xl shadow-2xl overflow-hidden ring-2 ring-[#FF6F61] ring-opacity-70" style="background: #252525;">
+            <div class="p-6">
+                <form id="imageForm" class="mb-6">
+                    <div class="mb-4">
+                        <label for="brandInput" class="block text-gray-300 mb-2 phantom-text-regular">URL Girin</label>
+                        <div class="flex">
+                            <input type="url" id="brandInput" name="brand_input" class="flex-1 px-4 py-3 h-12 bg-[#131313] border border-[#333333] rounded-l-lg focus:outline-none focus:border-[#333333] text-gray-100 phantom-text-regular" placeholder="https://example.com" required>
+                            <button type="button" id="addBrandButton" class="ml-2 px-4 py-3 bg-[#131313] border border-[#333333] text-gray-100 rounded-r-lg hover:bg-[#1a1a1a] focus:outline-none transition-all duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="#FF6F61" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button id="generateBtn" type="submit" class="button-glow w-full py-3 px-6 bg-[#131313] text-white phantom-text-regular rounded-lg hover:bg-[#1a1a1a] border border-[#333333] transition-all duration-300 focus:outline-none text-center">
+                        Görselleri Getir
+                    </button>
+                </form>
+
+                <div id="extractedImagesContainer" class="mt-8 hidden bg-[#131313] p-6 rounded-xl shadow-lg ring-1 ring-[#FF6F61] ring-opacity-50">
+                    <h3 class="text-2xl phantom-text text-center mb-4 text-[#FF6F61]">Çıkarılan Görseller</h3>
+                    <div class="relative">
+                        <button id="prevExtractedBtn" class="absolute left-0 top-1/2 transform -translate-y-1/2 z-20 bg-[#131313] text-white p-2 rounded-full shadow-lg transition-opacity duration-300 hover:bg-[#252525] border border-[#333333]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="#FF6F61" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <div id="extractedImagesGrid" class="flex overflow-hidden scroll-smooth py-6 px-8 gap-6">
+                        </div>
+                        <button id="nextExtractedBtn" class="absolute right-0 top-1/2 transform -translate-y-1/2 z-20 bg-[#131313] text-white p-2 rounded-full shadow-lg transition-opacity duration-300 hover:bg-[#252525] border border-[#333333]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="#FF6F61" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading Animation -->
+                <div id="loadingAnimation" class="hidden mt-8">
+                    <div class="flex flex-col items-center justify-center p-8">
+                        <div class="prompt-loader mb-4">
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                        </div>
+                        <p class="text-lg phantom-text-regular text-[#FF6F61]">Görseller Yükleniyor...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="mt-12 text-center text-gray-500 text-sm">
+            <p class="phantom-text" style="text-align: center; font-size: 14px; opacity: 0.5;">© 2025 | Agentic Creative Suite powered by <b>Consciouslab</b></p>
+        </footer>
+    </div>
+
+    <!-- Recent Content Bar -->
+    <div class="fixed bottom-0 left-0 right-0 bg-opacity-90 backdrop-filter backdrop-blur-lg border-t border-gray-800 py-2 px-4 recent-content-bar collapsed" style="background: #252525;">
+        <div class="container mx-auto relative">
+            <div class="grid grid-cols-3 items-center cursor-pointer" id="recentContentHeader">
+                <div class="col-span-1"><!-- Empty space --></div>
+                <h3 class="text-sm phantom-text-regular text-[#FF6F61] text-center col-span-1">Recently Created Content</h3>
+                <div class="flex items-center justify-end col-span-1">
+                    <button id="viewAllBtn" class="text-xs text-gray-400 hover:text-white transition-colors mr-2 whitespace-nowrap">View All</button>
+                    <i class="ri-arrow-up-s-line text-[#FF6F61] transition-transform" id="toggleArrow"></i>
+                </div>
+            </div>
+            <div id="recentContentContainer" class="hidden mt-3">
+                <div id="recentContentGrid" class="grid grid-cols-4 grid-rows-3 gap-6">
+                    <!-- content items -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-[#131313] p-4 rounded-lg max-w-4xl w-full mx-4 relative ring-2 ring-[#FF6F61] ring-opacity-70">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-[#FF6F61]">
+                <svg class="w-6 h-6" fill="none" stroke="#FF6F61" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <div class="mt-4">
+                <img id="modalImage" src="" alt="Selected image" class="max-h-[80vh] mx-auto">
+            </div>
+            <div class="mt-4 flex justify-end space-x-2">
+                <button onclick="submitImageSelectionAndClose()" class="modal-button modal-submit phantom-text">Bu Görseli Seç</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lastKnownCreditId = null;
+        let currentImageContainer = null;
+        
+        async function fetchCurrentCredit() {
+            try {
+                console.log('Fetching credit from backend API...');
+                const response = await fetch('/api/get-credit');
+                
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('API response:', data);
+                
+                if (data.success) {
+                    const currentCredit = data.credit;
+                    const currentId = data.id;
+                    const createdAt = data.created_at;
+                    
+                    console.log('Güncel Kredi Değeri:', currentCredit);
+                    console.log('Kredi Kaydı ID:', currentId);
+                    console.log('Oluşturulma Zamanı:', createdAt);
+                    document.querySelector('#creditDisplay span').textContent = `Credits: ${currentCredit}`;
+                    lastKnownCreditId = currentId;
+                } else {
+                    console.log('Hiç kredi kaydı bulunamadı veya hata oluştu');
+                    document.querySelector('#creditDisplay span').textContent = 'Credits: 0';
+                }
+            } catch (error) {
+                console.error('Kredi değeri alınamadı:', error);
+                document.querySelector('#creditDisplay span').textContent = 'Credits: Hata';
+            }
+        }
+
+        function setupRealtimeUpdates() {
+            try {
+                console.log('Setting up SSE connection...');
+                let eventSource = null;
+                
+                // Only establish connection when page is visible
+                function connectSSE() {
+                    if (eventSource) {
+                        return; // Already connected
+                    }
+                    
+                    console.log('Establishing SSE connection for credit updates');
+                    eventSource = new EventSource('/api/listen-credit-changes');
+                    
+                    eventSource.onmessage = function(event) {
+                        if (event.data && event.data.trim()) {
+                            console.log('SSE message received:', event);
+                            try {
+                                const data = JSON.parse(event.data);
+                                
+                                if (data.error) {
+                                    console.error('SSE error:', data.error);
+                                    return;
+                                }
+                                
+                                if (data.id && data.id !== lastKnownCreditId) {
+                                    console.log('New credit record detected:', data);
+                                    lastKnownCreditId = data.id;
+                                    const creditValue = data.credit || 0;
+                                    document.querySelector('#creditDisplay span').textContent = `Credits: ${creditValue}`;
+                                }
+                            } catch (error) {
+                                console.error('Error processing SSE message:', error);
+                            }
+                        }
+                    };
+                    
+                    eventSource.onerror = function(error) {
+                        console.error('SSE connection error:', error);
+                        disconnectSSE();
+                        
+                        // Try to reconnect after 5 seconds
+                        setTimeout(connectSSE, 5000);
+                    };
+                }
+                
+                function disconnectSSE() {
+                    if (eventSource) {
+                        console.log('Closing SSE connection');
+                        eventSource.close();
+                        eventSource = null;
+                    }
+                }
+                
+                // Connect when page is visible, disconnect when hidden
+                document.addEventListener('visibilitychange', function() {
+                    if (document.visibilityState === 'visible') {
+                        connectSSE();
+                        // Refresh credit info immediately when page becomes visible
+                        fetchCurrentCredit();
+                    } else {
+                        disconnectSSE();
+                    }
+                });
+                
+                // Initial connection if page is visible
+                if (document.visibilityState === 'visible') {
+                    connectSSE();
+                }
+                
+                window.addEventListener('beforeunload', disconnectSSE);
+            } catch (error) {
+                console.error('Error setting up SSE:', error);
+            }
+        }
+        
+        function fetchRecentContent() {
+            // Reset the content container
+            const recentContentGrid = document.getElementById('recentContentGrid');
+            recentContentGrid.innerHTML = '';
+            
+            // Define variables for pagination and tracking
+            let currentPage = 1;
+            let isLoading = false;
+            let hasMore = true;
+            
+            // Make these variables global so the scroll handler can access them
+            window.contentIsLoading = isLoading;
+            window.contentHasMore = hasMore;
+            
+            // Load initial content
+            loadMoreContent();
+            
+            // Expose this function to be called from scroll event
+            window.loadMoreProductVisualContent = loadMoreContent;
+            
+            // İçerik oluşturma fonksiyonu
+            function createContentItem(item) {
+                const contentItem = document.createElement('div');
+                contentItem.className = 'relative group overflow-hidden rounded-md recent-content-item';
+                
+                // İçerik tipine göre element oluştur
+                let contentElement;
+                if (item.type === 'video') {
+                    contentElement = document.createElement('video');
+                    contentElement.src = item.url;
+                    contentElement.muted = true;
+                    contentElement.className = 'recent-content-video cursor-pointer';
+                    
+                    // Play video on hover
+                    contentElement.addEventListener('mouseenter', function() {
+                        this.play();
+                    });
+                    contentElement.addEventListener('mouseleave', function() {
+                        this.pause();
+                        this.currentTime = 0;
+                    });
+                } else {
+                    contentElement = document.createElement('img');
+                    contentElement.src = item.url;
+                    contentElement.alt = 'Recent content';
+                    contentElement.className = 'recent-content-image cursor-pointer';
+                }
+                
+                // İçerik tıklama olayı - change to always navigate to /library
+                contentItem.addEventListener('click', function() {
+                    window.location.href = '/library';
+                });
+                
+                // Overlay ile içerik detayları
+                const overlay = document.createElement('div');
+                overlay.className = 'recent-content-overlay';
+                
+                const contentTitle = document.createElement('div');
+                contentTitle.className = 'text-white text-xs phantom-text-regular truncate recent-content-title';
+                contentTitle.textContent = item.title || item.type;
+                
+                const contentDate = document.createElement('div');
+                contentDate.className = 'text-gray-300 text-xs recent-content-date';
+                contentDate.textContent = new Date(item.created_at).toLocaleDateString('tr-TR');
+                
+                overlay.appendChild(contentTitle);
+                overlay.appendChild(contentDate);
+                
+                contentItem.appendChild(contentElement);
+                contentItem.appendChild(overlay);
+                
+                // Add audio icon if overlay is not found or can't be created
+                if (!contentItem.querySelector('.recent-content-overlay') || 
+                    item.type === 'audio' || 
+                    (item.title && item.title.toLowerCase().includes('audio'))) {
+                    const audioIcon = document.createElement('div');
+                    audioIcon.className = 'absolute top-2 right-2 p-1 rounded-full bg-black bg-opacity-50';
+                    audioIcon.innerHTML = '<i class="ri-volume-up-fill text-white text-lg"></i>';
+                    contentItem.appendChild(audioIcon);
+                }
+                
+                return contentItem;
+            }
+            
+            // Function to load more content with product-visual filter
+            async function loadMoreContent() {
+                if (window.contentIsLoading || !window.contentHasMore) return;
+                
+                console.log("Attempting to load more content...");
+                
+                window.contentIsLoading = true;
+                isLoading = true;
+                
+                try {
+                    // Set a larger limit to get more items at once
+                    const apiUrl = `/api/recent-content?page=${currentPage}&limit=20`;
+                    console.log(`Fetching from: ${apiUrl}`);
+                    
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error(`HTTP error: ${response.status}`, errorText);
+                        throw new Error(`HTTP error: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log("API response data:", data);
+                    
+                    if (data.success) {
+                        if (data.items && data.items.length > 0) {
+                            const filteredItems = data.items.filter(item => 
+                                item.title === 'product-visual'
+                            );
+                            
+                            console.log(`Found ${filteredItems.length} product-visual items out of ${data.items.length} total items`);
+                            
+                            filteredItems.forEach(item => {
+                                const contentItem = createContentItem(item);
+                                recentContentGrid.appendChild(contentItem);
+                            });
+                            
+                            // Update pagination
+                            hasMore = data.has_more;
+                            window.contentHasMore = hasMore;
+                            currentPage++;
+                            
+                            // If we received less than 16 product-visual items and there are more pages,
+                            // auto-load the next page to get more content until we have at least 16 items
+                            if (recentContentGrid.children.length < 16 && data.has_more) {
+                                setTimeout(loadMoreContent, 300); // Add a small delay to prevent overloading
+                            }
+                            
+                            // If no items were found and we have more pages, try the next page
+                            if (filteredItems.length === 0 && data.has_more) {
+                                setTimeout(loadMoreContent, 300);
+                                return;
+                            }
+                            
+                            // If no product-visual items found at all
+                            if (filteredItems.length === 0 && recentContentGrid.children.length === 0) {
+                                const noContentMsg = document.createElement('div');
+                                noContentMsg.className = 'col-span-4 text-center py-4 text-gray-500';
+                                noContentMsg.textContent = 'No product visual content found';
+                                recentContentGrid.appendChild(noContentMsg);
+                            }
+                        } else if (recentContentGrid.children.length === 0) {
+                            // No items at all and container is empty
+                            const noContentMsg = document.createElement('div');
+                            noContentMsg.className = 'col-span-4 text-center py-4 text-gray-500';
+                            noContentMsg.textContent = 'No product visual content found';
+                            recentContentGrid.appendChild(noContentMsg);
+                            hasMore = false;
+                            window.contentHasMore = false;
+                        }
+                    } else {
+                        throw new Error(data.error || 'Unknown error');
+                    }
+                } catch (error) {
+                    console.error('Error fetching recent content:', error);
+                    // Hata detaylarını konsola yazdır
+                    console.error('Error details:', error.message, error.stack);
+                    if (recentContentGrid.children.length === 0) {
+                        const errorMsg = document.createElement('div');
+                        errorMsg.className = 'col-span-4 text-center py-4 text-red-400';
+                        errorMsg.textContent = 'İçerikler yüklenemedi';
+                        recentContentGrid.appendChild(errorMsg);
+                    }
+                    hasMore = false;
+                    window.contentHasMore = false;
+                } finally {
+                    isLoading = false;
+                    window.contentIsLoading = false;
+                }
+            }
+            
+            // Toggle content panel visibility
+            const recentContentHeader = document.getElementById('recentContentHeader');
+            const recentContentContainer = document.getElementById('recentContentContainer');
+            const recentContentBar = document.querySelector('.recent-content-bar');
+            const toggleArrow = document.getElementById('toggleArrow');
+            const viewAllBtn = document.getElementById('viewAllBtn');
+            
+            // Function to toggle the content panel
+            function toggleContentPanel(e) {
+                // Don't propagate events from the library link
+                if (e && e.target.id === 'libraryLink') return;
+                
+                recentContentBar.classList.toggle('expanded');
+                
+                // Use transitions instead of hiding/showing
+                if (recentContentContainer.classList.contains('visible')) {
+                    recentContentContainer.classList.remove('visible');
+                    // Wait for transition to complete before actually hiding
+                    setTimeout(() => {
+                        if (!recentContentBar.classList.contains('expanded')) {
+                            recentContentContainer.classList.add('hidden');
+                        }
+                    }, 500);
+                } else {
+                    recentContentContainer.classList.remove('hidden');
+                    // Small delay to trigger transition after display is set
+                    setTimeout(() => {
+                        recentContentContainer.classList.add('visible');
+                    }, 10);
+                }
+                
+                toggleArrow.style.transform = recentContentBar.classList.contains('expanded') ? 'rotate(180deg)' : 'rotate(0)';
+                
+                // Load more content if needed when expanding
+                if (recentContentBar.classList.contains('expanded') && recentContentGrid.children.length < 16 && window.contentHasMore) {
+                    window.loadMoreProductVisualContent();
+                }
+            }
+            
+            // Add event listeners for header and view all button
+            recentContentHeader.addEventListener('click', toggleContentPanel);
+            viewAllBtn.addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent header click event from firing
+                toggleContentPanel();
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchCurrentCredit();
+            setupRealtimeUpdates();
+            fetchRecentContent(); // Fetch recent content
+
+            const checkInterval = 60000; // 1 minute (just as a fallback)
+            const fallbackChecker = setInterval(fetchCurrentCredit, checkInterval);
+            
+            window.addEventListener('beforeunload', () => {
+                clearInterval(fallbackChecker);
+            });
+
+            const images = document.querySelectorAll('.image-gallery img');
+            images.forEach(img => {
+                img.addEventListener('error', function() {
+                    this.parentNode.innerHTML = `
+                        <div class="flex items-center justify-center h-48 bg-[#131313] rounded-lg">
+                            <p class="text-red-400 text-sm">Görsel yüklenemedi</p>
+                        </div>
+                    `;
+                });
+            });
+            
+            const imageForm = document.getElementById('imageForm');
+            const extractedImagesContainer = document.getElementById('extractedImagesContainer');
+            const extractedImagesGrid = document.getElementById('extractedImagesGrid');
+            
+            imageForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const imageUpload = document.getElementById('imageUpload');
+                if (imageUpload) {
+                    const files = imageUpload.files;
+                    if (!files || files.length === 0) {
+                        alert('Lütfen bir görsel seçin');
+                        return;
+                    }
+                    // Directly generate images from the uploaded file without showing modal
+                    await submitImageSelection();
+                    return;
+                }
+                
+                // Otherwise, handle URL input flow
+                const brandInput = document.getElementById('brandInput').value;
+                if (!brandInput) {
+                    alert('Lütfen geçerli bir URL girin');
+                    return;
+                }
+
+                // Check if this is a product page URL (not a direct image URL)
+                const isImageUrl = brandInput.toLowerCase().endsWith('.jpg') || 
+                                  brandInput.toLowerCase().endsWith('.jpeg') || 
+                                  brandInput.toLowerCase().endsWith('.png') || 
+                                  brandInput.toLowerCase().endsWith('.webp') ||
+                                  brandInput.startsWith('data:image/');
+                
+                const isProductUrl = !isImageUrl && (
+                    brandInput.includes('hepsiburada.com') || 
+                    brandInput.includes('trendyol.com') || 
+                    brandInput.includes('amazon.com') ||
+                    brandInput.includes('n11.com') ||
+                    brandInput.includes('gittigidiyor.com')
+                );
+                
+                if (isProductUrl) {
+                    // For product URLs, need to extract images first
+                    // Store input in session storage and reload page to trigger extraction
+                    sessionStorage.setItem('lastBrandInput', brandInput);
+                    window.location.reload();
+                    return;
+                } else {
+                    // For direct image URLs, proceed immediately to image generation
+                    await submitImageSelection();
+                }
+            });
+
+            // Check for stored input value when page loads
+            (async function() {
+                const lastBrandInput = sessionStorage.getItem('lastBrandInput');
+                if (lastBrandInput) {
+                    // Clear the stored value
+                    sessionStorage.removeItem('lastBrandInput');
+                    
+                    // Set the input value
+                    document.getElementById('brandInput').value = lastBrandInput;
+                    
+                    // Check if it's a product URL
+                    const isImageUrl = lastBrandInput.toLowerCase().endsWith('.jpg') || 
+                                      lastBrandInput.toLowerCase().endsWith('.jpeg') || 
+                                      lastBrandInput.toLowerCase().endsWith('.png') || 
+                                      lastBrandInput.toLowerCase().endsWith('.webp') ||
+                                      lastBrandInput.startsWith('data:image/');
+                    
+                    const isProductUrl = !isImageUrl && (
+                        lastBrandInput.includes('hepsiburada.com') || 
+                        lastBrandInput.includes('trendyol.com') || 
+                        lastBrandInput.includes('amazon.com') ||
+                        lastBrandInput.includes('n11.com') ||
+                        lastBrandInput.includes('gittigidiyor.com')
+                    );
+                    
+                    try {
+                        // Show loading animation
+                        document.getElementById('loadingAnimation').classList.remove('hidden');
+                        imageForm.classList.add('opacity-50', 'pointer-events-none');
+                        
+                        // Always try to extract images first for product URLs
+                        if (isProductUrl) {
+                            const extractResponse = await fetch('/extract-images', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({ url: lastBrandInput })
+                            });
+
+                            const extractData = await extractResponse.json();
+                            
+                            if (extractData.error) {
+                                throw new Error(extractData.error);
+                            }
+
+                            // Process extraction results
+                            if (extractData.product_images && extractData.product_images.length > 0) {
+                                // Hide loading animation
+                                document.getElementById('loadingAnimation').classList.add('hidden');
+                                
+                                // Show extracted images
+                                extractedImagesGrid.innerHTML = '';
+                                extractedImagesContainer.classList.remove('hidden');
+                                
+                                extractData.product_images.forEach((imageUrl, index) => {
+                                    const imageContainer = document.createElement('div');
+                                    imageContainer.className = 'relative border-2 border-transparent rounded-lg cursor-pointer hover:border-[#FF6F61] transition-all ring-1 ring-[#FF6F61] ring-opacity-30 hover:ring-opacity-70 image-hover-glow flex-shrink-0 w-[calc(25%-18px)] aspect-square';
+                                    imageContainer.setAttribute('data-url', imageUrl);
+                                    
+                                    const img = document.createElement('img');
+                                    img.src = imageUrl;
+                                    img.alt = `Extracted image ${index + 1}`;
+                                    img.className = 'w-full h-full object-cover rounded-lg';
+                                    
+                                    const loadingOverlay = document.createElement('div');
+                                    loadingOverlay.className = 'absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center';
+                                    loadingOverlay.innerHTML = '<div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#FF6F61]"></div>';
+                                    imageContainer.appendChild(loadingOverlay);
+                                    
+                                    img.onload = function() {
+                                        loadingOverlay.remove();
+                                    };
+                                    
+                                    img.onerror = function() {
+                                        loadingOverlay.innerHTML = '<p class="text-red-400 text-sm">Görsel yüklenemedi</p>';
+                                    };
+                                    
+                                    imageContainer.appendChild(img);
+                                    
+                                    imageContainer.addEventListener('click', function(e) {
+                                        if (e.target.tagName === 'IMG') {
+                                            // Remove selected class from all containers
+                                            document.querySelectorAll('.selected').forEach(el => {
+                                                el.classList.remove('selected');
+                                            });
+                                            
+                                            // Mark this container as selected
+                                            this.classList.add('selected');
+                                            
+                                            const imageUrl = this.getAttribute('data-url');
+                                            currentImageContainer = this;
+                                            showModal(imageUrl);
+                                            e.stopPropagation();
+                                        }
+                                    });
+                                    
+                                    extractedImagesGrid.appendChild(imageContainer);
+                                });
+                                
+                                // Set up navigation buttons
+                                const prevExtractedBtn = document.getElementById('prevExtractedBtn');
+                                const nextExtractedBtn = document.getElementById('nextExtractedBtn');
+                                
+                                if (prevExtractedBtn && nextExtractedBtn) {
+                                    prevExtractedBtn.addEventListener('click', function() {
+                                        extractedImagesGrid.scrollBy({
+                                            left: -300,
+                                            behavior: 'smooth'
+                                        });
+                                    });
+                                    
+                                    nextExtractedBtn.addEventListener('click', function() {
+                                        extractedImagesGrid.scrollBy({
+                                            left: 300,
+                                            behavior: 'smooth'
+                                        });
+                                    });
+                                    
+                                    // Make sure buttons are visible
+                                    prevExtractedBtn.style.display = 'flex';
+                                    nextExtractedBtn.style.display = 'flex';
+                                }
+                                
+                                // Remove loading state
+                                imageForm.classList.remove('opacity-50', 'pointer-events-none');
+                            } else {
+                                throw new Error('Görsel bulunamadı');
+                            }
+                        } else {
+                            // Direct URL processing
+                            const response = await fetch('/extract-images', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({ url: lastBrandInput })
+                            });
+
+                            const extractData = await response.json();
+                            
+                            if (extractData.error) {
+                                throw new Error(extractData.error);
+                            }
+
+                            extractedImagesGrid.innerHTML = '';
+
+                            if (extractData.product_images && extractData.product_images.length > 0) {
+                                // Hide loading animation
+                                document.getElementById('loadingAnimation').classList.add('hidden');
+                                extractedImagesContainer.classList.remove('hidden');
+                                
+                                extractData.product_images.forEach((imageUrl, index) => {
+                                    const imageContainer = document.createElement('div');
+                                    imageContainer.className = 'relative border-2 border-transparent rounded-lg cursor-pointer hover:border-[#FF6F61] transition-all ring-1 ring-[#FF6F61] ring-opacity-30 hover:ring-opacity-70 image-hover-glow flex-shrink-0 w-[calc(25%-18px)] aspect-square';
+                                    imageContainer.setAttribute('data-url', imageUrl);
+                                    
+                                    const img = document.createElement('img');
+                                    img.src = imageUrl;
+                                    img.alt = `Extracted image ${index + 1}`;
+                                    img.className = 'w-full h-full object-cover rounded-lg';
+                                    
+                                    const loadingOverlay = document.createElement('div');
+                                    loadingOverlay.className = 'absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center';
+                                    loadingOverlay.innerHTML = '<div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#FF6F61]"></div>';
+                                    imageContainer.appendChild(loadingOverlay);
+                                    
+                                    img.onload = function() {
+                                        loadingOverlay.remove();
+                                    };
+                                    
+                                    img.onerror = function() {
+                                        loadingOverlay.innerHTML = '<p class="text-red-400 text-sm">Görsel yüklenemedi</p>';
+                                    };
+                                    
+                                    imageContainer.appendChild(img);
+                                    
+                                    imageContainer.addEventListener('click', function(e) {
+                                        if (e.target.tagName === 'IMG') {
+                                            // Remove selected class from all containers
+                                            document.querySelectorAll('.selected').forEach(el => {
+                                                el.classList.remove('selected');
+                                            });
+                                            
+                                            // Mark this container as selected
+                                            this.classList.add('selected');
+                                            
+                                            const imageUrl = this.getAttribute('data-url');
+                                            currentImageContainer = this;
+                                            showModal(imageUrl);
+                                            e.stopPropagation();
+                                        }
+                                    });
+                                    
+                                    extractedImagesGrid.appendChild(imageContainer);
+                                });
+                                
+                                // Set up the scroll navigation for extracted images
+                                const prevExtractedBtn = document.getElementById('prevExtractedBtn');
+                                const nextExtractedBtn = document.getElementById('nextExtractedBtn');
+                                
+                                if (prevExtractedBtn && nextExtractedBtn) {
+                                    prevExtractedBtn.addEventListener('click', function() {
+                                        extractedImagesGrid.scrollBy({
+                                            left: -300,
+                                            behavior: 'smooth'
+                                        });
+                                    });
+                                    
+                                    nextExtractedBtn.addEventListener('click', function() {
+                                        extractedImagesGrid.scrollBy({
+                                            left: 300,
+                                            behavior: 'smooth'
+                                        });
+                                    });
+                                    
+                                    // Make sure buttons are visible
+                                    prevExtractedBtn.style.display = 'flex';
+                                    nextExtractedBtn.style.display = 'flex';
+                                }
+                            } else {
+                                throw new Error('Görsel bulunamadı');
+                            }
+                        }
+                    } catch (error) {
+                        // Hide loading animation on error
+                        document.getElementById('loadingAnimation').classList.add('hidden');
+                        imageForm.classList.remove('opacity-50', 'pointer-events-none');
+                        alert('Hata: ' + error.message);
+                    }
+                }
+            })();
+
+            // Define upload mode toggle and revert button for image form
+            const formGroup = document.querySelector('#imageForm .mb-4');
+            const generateBtn = document.getElementById('generateBtn');
+            const originalFormGroupHTML = formGroup.innerHTML;
+            function toggleToUpload() {
+                // Clear any previously generated content
+                const extractedImagesContainer = document.getElementById('extractedImagesContainer');
+                if (extractedImagesContainer) {
+                    extractedImagesContainer.classList.add('hidden');
+                    document.getElementById('extractedImagesGrid').innerHTML = '';
+                }
+                
+                const generatedImagesContainer = document.getElementById('generatedImagesContainer');
+                if (generatedImagesContainer) {
+                    generatedImagesContainer.remove();
+                }
+                
+                const generatedVideoContainer = document.getElementById('generatedVideoContainer');
+                if (generatedVideoContainer) {
+                    generatedVideoContainer.remove();
+                }
+                
+                // Mevcut görsel önizlemelerini ve seçimlerini temizle
+                const existingPreviewContainer = document.getElementById('uploadPreviewContainer');
+                if (existingPreviewContainer) {
+                    existingPreviewContainer.remove();
+                }
+                
+                // Görsel seçimini sıfırla
+                currentImageContainer = null;
+                
+                formGroup.innerHTML = `
+                    <label for="imageUpload" class="block text-gray-300 mb-2 phantom-text-regular">Görsel Seçin</label>
+                    <div class="flex">
+                        <input type="file" id="imageUpload" name="image_upload" accept="image/*" multiple class="flex-1 px-4 py-3 h-12 bg-[#131313] border border-[#333333] rounded-l-lg focus:outline-none focus:border-[#333333] text-gray-100 phantom-text-regular" required>
+                        <button type="button" id="revertUploadBtn" class="ml-2 px-4 py-3 bg-[#131313] border border-[#333333] text-gray-100 rounded-r-lg hover:bg-[#1a1a1a] focus:outline-none transition-all duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="#FF6F61" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                generateBtn.textContent = 'Gönder';
+                document.getElementById('revertUploadBtn').addEventListener('click', function() {
+                    formGroup.innerHTML = originalFormGroupHTML;
+                    generateBtn.textContent = 'Görselleri Getir';
+                    document.getElementById('addBrandButton').addEventListener('click', toggleToUpload);
+                    
+                    // Yüklenen görsel önizlemelerini temizle
+                    const previewContainer = document.getElementById('uploadPreviewContainer');
+                    if (previewContainer) {
+                        previewContainer.remove();
+                    }
+                    
+                    // Clear any previously generated content
+                    const extractedImagesContainer = document.getElementById('extractedImagesContainer');
+                    if (extractedImagesContainer) {
+                        extractedImagesContainer.classList.add('hidden');
+                        document.getElementById('extractedImagesGrid').innerHTML = '';
+                    }
+                    
+                    const generatedImagesContainer = document.getElementById('generatedImagesContainer');
+                    if (generatedImagesContainer) {
+                        generatedImagesContainer.remove();
+                    }
+                    
+                    const generatedVideoContainer = document.getElementById('generatedVideoContainer');
+                    if (generatedVideoContainer) {
+                        generatedVideoContainer.remove();
+                    }
+                    
+                    // Görsel seçimini de sıfırla
+                    currentImageContainer = null;
+                });
+                // Preview selected image files inside the form
+                const imageUploadInput = document.getElementById('imageUpload');
+                imageUploadInput.addEventListener('change', function() {
+                    let previewContainer = document.getElementById('uploadPreviewContainer');
+                    if (!previewContainer) {
+                        previewContainer = document.createElement('div');
+                        previewContainer.id = 'uploadPreviewContainer';
+                        previewContainer.className = 'mt-4 flex flex-wrap justify-center items-center gap-4';
+                        formGroup.appendChild(previewContainer);
+                    }
+                    previewContainer.innerHTML = '';
+                    Array.from(this.files).forEach((file, index) => {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            // Create a container for each preview image
+                            const container = document.createElement('div');
+                            container.className = 'relative border-2 border-transparent rounded-lg cursor-pointer hover:border-[#FF6F61] transition-all ring-1 ring-[#FF6F61] ring-opacity-30 hover:ring-opacity-70 image-hover-glow flex-shrink-0 w-[calc(25%-18px)] aspect-square';
+                            container.file = file;
+                            container.setAttribute('data-url', event.target.result);
+                            const img = document.createElement('img');
+                            img.src = event.target.result;
+                            img.className = 'w-full h-full object-cover rounded-lg ring-2 ring-[#FF6F61] ring-opacity-90 shadow-[0_0_20px_rgba(255,111,97,0.8)] hover:shadow-[0_0_30px_rgba(255,111,97,1)] transition-shadow duration-300';
+                            container.appendChild(img);
+                            previewContainer.appendChild(container);
+                            // Auto-select the first image
+                            if (index === 0) {
+                                currentImageContainer = container;
+                                img.classList.add('selected');
+                            }
+                            // Allow clicking to re-select
+                            container.addEventListener('click', function() {
+                                currentImageContainer = this;
+                            });
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                });
+            }
+            document.getElementById('addBrandButton').addEventListener('click', toggleToUpload);
+        });
+
+        function showModal(imageUrl) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modalImg.src = imageUrl;
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('imageModal');
+            modal.classList.add('hidden');
+        }
+
+        async function checkGenerationStatus(requestId) {
+            if (!requestId) return null;
+            
+            try {
+                const response = await fetch(`/check_status/${requestId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('Status check response:', data);
+                return data;
+            } catch (error) {
+                console.error('Status check error:', error);
+                return null;
+            }
+        }
+
+        async function submitImageSelectionAndClose() {
+            const modal = document.getElementById('imageModal');
+            modal.classList.add('hidden');
+            
+            // Mark selected image in UI
+            if (currentImageContainer) {
+                // Remove selected class from all containers
+                document.querySelectorAll('.selected').forEach(el => {
+                    el.classList.remove('selected');
+                });
+                
+                // Add selected class to the current container
+                currentImageContainer.classList.add('selected');
+            }
+            
+            await submitImageSelection();
+        }
+
+        async function submitImageSelection() {
+            // Upload mode: take the first selected file and upload it to backend
+            const imageUpload = document.getElementById('imageUpload');
+            let selectedImageUrl;
+            
+            // Check if a specific image has been selected from extracted images
+            if (currentImageContainer && currentImageContainer.getAttribute('data-url')) {
+                selectedImageUrl = currentImageContainer.getAttribute('data-url');
+                console.log('🖼️ Seçilen çıkarılmış görsel kullanılıyor:', selectedImageUrl);
+            } else if (imageUpload) {
+                const files = imageUpload.files;
+                if (!files || files.length === 0) {
+                    alert('Lütfen bir görsel seçin');
+                    return;
+                }
+                // Dosyayı FileReader ile base64'e çevir
+                const reader = new FileReader();
+                const file = files[0];
+                
+                // Promises ile FileReader'ı bekleyelim
+                selectedImageUrl = await new Promise((resolve, reject) => {
+                    reader.onload = function() {
+                        resolve(reader.result); // Base64 Data URI dönüşü
+                    };
+                    reader.onerror = function() {
+                        reject(new Error('Görsel okunamadı'));
+                    };
+                    reader.readAsDataURL(file);
+                });
+                
+                console.log('📤 Dosya base64 formatına çevrildi');
+            } else {
+                // URL mode: read from brandInput
+                const brandInputUrl = document.getElementById('brandInput').value;
+                if (!brandInputUrl) {
+                    alert('Lütfen bir URL girin veya bir görsel seçin');
+                    return;
+                }
+                
+                // Check if this is an image URL or a product page URL
+                const isImageUrl = brandInputUrl.toLowerCase().endsWith('.jpg') || 
+                                  brandInputUrl.toLowerCase().endsWith('.jpeg') || 
+                                  brandInputUrl.toLowerCase().endsWith('.png') || 
+                                  brandInputUrl.toLowerCase().endsWith('.webp') ||
+                                  brandInputUrl.startsWith('data:image/');
+                
+                const isProductUrl = !isImageUrl && (
+                    brandInputUrl.includes('hepsiburada.com') || 
+                    brandInputUrl.includes('trendyol.com') || 
+                    brandInputUrl.includes('amazon.com') ||
+                    brandInputUrl.includes('n11.com') ||
+                    brandInputUrl.includes('gittigidiyor.com')
+                );
+                
+                if (isProductUrl) {
+                    // For product URLs, show the extraction UI instead of trying direct processing
+                    // Store for processing during page refresh
+                    sessionStorage.setItem('lastBrandInput', brandInputUrl);
+                    window.location.reload();
+                    return;
+                } else {
+                    // Direct image URL or other URL
+                    selectedImageUrl = brandInputUrl;
+                    // Store for refresh logic
+                    sessionStorage.setItem('lastBrandInput', brandInputUrl);
+                }
+            }
+            
+            console.log('🖼️ Seçilen görsel URL:', selectedImageUrl);
+
+            try {
+                // Create a container for generated images if it doesn't exist
+                let generatedImagesContainer = document.getElementById('generatedImagesContainer');
+                if (!generatedImagesContainer) {
+                    generatedImagesContainer = document.createElement('div');
+                    generatedImagesContainer.id = 'generatedImagesContainer';
+                    generatedImagesContainer.className = 'mt-8 bg-[#131313] p-6 rounded-xl shadow-lg ring-1 ring-[#FF6F61] ring-opacity-50';
+                    generatedImagesContainer.innerHTML = `
+                        <h3 class="text-2xl phantom-text text-center mb-4 text-[#FF6F61]">Üretilen Görseller</h3>
+                        <div id="generatedImagesGrid" class="flex justify-between gap-4 py-6 px-4"></div>
+                    `;
+                    
+                    const extractedImagesContainer = document.getElementById('extractedImagesContainer');
+                    if (extractedImagesContainer) {
+                        extractedImagesContainer.parentNode.insertBefore(generatedImagesContainer, extractedImagesContainer.nextSibling);
+                    }
+                }
+
+                const generatedImagesGrid = document.getElementById('generatedImagesGrid');
+                
+                // Simple loading animation
+                generatedImagesGrid.innerHTML = `
+                    <div class="w-full text-center p-8">
+                        <div class="image-loader mx-auto"></div>
+                        <p class="text-lg phantom-text-regular loading-text mt-4">Görseller Üretiliyor...</p>
+                    </div>
+                `;
+
+                // Generate prompts for the selected image
+                const promptResponse = await fetch('/generate-prompt', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        text: selectedImageUrl,
+                        feature_type: 'image',
+                        source_type: imageUpload ? 'upload' : 'url'  // Add source_type parameter
+                    })
+                });
+
+                const promptData = await promptResponse.json();
+                if (promptData.error) throw new Error(promptData.error);
+
+                if (!promptData.prompt_data || promptData.prompt_data.length === 0) {
+                    throw new Error('Prompt oluşturulamadı');
+                }
+
+                // Generate images
+                const response = await fetch('/generate_image', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        prompt_data: promptData.prompt_data.slice(0, 4),
+                        image_url: selectedImageUrl,
+                        content_type: 'product-visual',
+                        type: 'image'
+                    })
+                });
+                
+                const imageData = await response.json();
+                if (imageData.error) throw new Error(imageData.error);
+
+                // Display generated images
+                if (imageData.generated_images && imageData.generated_images.length > 0) {
+                    generatedImagesGrid.innerHTML = '';
+                    
+                    imageData.generated_images.forEach((genImage, index) => {
+                        const imageContainer = document.createElement('div');
+                        imageContainer.className = 'relative border-2 border-transparent rounded-lg cursor-pointer hover:border-[#FF6F61] transition-all ring-1 ring-[#FF6F61] ring-opacity-30 hover:ring-opacity-70 image-hover-glow w-[calc(25%-12px)]';
+                        imageContainer.setAttribute('data-url', genImage.image_url);
+                        
+                        const img = document.createElement('img');
+                        img.src = genImage.image_url;
+                        img.alt = `Generated image ${index + 1}`;
+                        img.className = 'w-full rounded-lg';
+                        
+                        imageContainer.addEventListener('click', (e) => {
+                            // Remove selected class from all containers
+                            document.querySelectorAll('#generatedImagesGrid .selected').forEach(el => {
+                                el.classList.remove('selected');
+                            });
+                            
+                            // Add selected class to clicked container
+                            imageContainer.classList.add('selected');
+                            
+                            // Store current selected container for modal
+                            currentImageContainer = imageContainer;
+                            
+                            showImageModal(genImage.image_url, index + 1);
+                        });
+                        
+                        imageContainer.appendChild(img);
+                        generatedImagesGrid.appendChild(imageContainer);
+                    });
+                } else {
+                    throw new Error('Görsel üretilemedi');
+                }
+
+                // Close modal and highlight selection
+                closeModal();
+                document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+                if (currentImageContainer) {
+                    currentImageContainer.classList.add('selected');
+                }
+
+            } catch (error) {
+                console.error('❌ Hata:', error);
+                const generatedImagesGrid = document.getElementById('generatedImagesGrid');
+                if (generatedImagesGrid) {
+                    generatedImagesGrid.innerHTML = `
+                        <div class="text-red-400 text-center p-6">
+                            <svg class="h-12 w-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <p class="font-semibold mb-2">İşlem başarısız oldu</p>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function showImageModal(imageUrl, imageIndex) {
+            // Create modal container
+            const modalContainer = document.createElement('div');
+            modalContainer.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-90 transition-opacity duration-300';
+            modalContainer.style.opacity = '0';
+
+            // Create modal content
+            const modalContent = document.createElement('div');
+            modalContent.className = 'relative max-w-4xl w-full bg-[#131313] rounded-lg shadow-xl transform transition-transform duration-300 scale-95';
+            // Create close button
+            const closeButton = document.createElement('button');
+            closeButton.className = 'absolute top-4 right-4 text-[#FF6F61] z-50 p-2 rounded-full bg-[#131313]';
+            closeButton.innerHTML = `
+                <svg class="w-6 h-6" fill="none" stroke="#FF6F61" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            `;
+            closeButton.onclick = () => {
+                modalContainer.style.opacity = '0';
+                modalContent.classList.remove('scale-100');
+                modalContent.classList.add('scale-95');
+                setTimeout(() => modalContainer.remove(), 300);
+            };
+
+            // Create image container
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'p-4';
+            
+            const modalImage = document.createElement('img');
+            modalImage.src = imageUrl;
+            modalImage.alt = `Generated image ${imageIndex}`;
+            modalImage.className = 'w-4/5 max-h-[70vh] object-contain rounded-lg mx-auto';
+
+            // Create download button
+            const downloadButton = document.createElement('button');
+            downloadButton.className = 'mt-4 w-auto mx-2 bg-[#131313] text-white phantom-text-regular px-6 py-3 rounded-lg flex items-center justify-center space-x-2 ring-1 ring-[#FF6F61] hover:ring-2 transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,111,97,0.6)]';
+            downloadButton.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Görseli İndir</span>
+            `;
+            
+            // Create video conversion button
+            const videoButton = document.createElement('button');
+            videoButton.className = 'mt-4 w-auto mx-2 bg-[#FF6F61] text-[#131313] phantom-text px-6 py-3 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300 hover:transform hover:translateY(-2px) hover:shadow-lg';
+            videoButton.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span>Videoya Dönüştür</span>
+            `;
+
+            // Add video duration selection
+            const videoDurationSelect = document.createElement('select');
+            videoDurationSelect.className = 'mt-4 h-[46px] px-3 mx-2 bg-[#FF6F61] text-[#131313] rounded-lg phantom-text border-none focus:outline-none';
+            videoDurationSelect.innerHTML = `
+                <option value="5">5 saniye</option>
+                <option value="9">9 saniye</option>
+            `;
+            
+            // Create a container div for the buttons and select
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'flex justify-center items-center mt-4';
+            
+            // Append buttons and select to the container
+            buttonContainer.appendChild(downloadButton);
+            buttonContainer.appendChild(videoButton);
+            buttonContainer.appendChild(videoDurationSelect);
+            
+            // Add download functionality to download button
+            downloadButton.onclick = async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                try {
+                    const response = await fetch(imageUrl);
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `generated-image-${imageIndex}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                    console.log('✅ Görsel başarıyla indirildi');
+                } catch (error) {
+                    console.error('❌ Görsel indirme hatası:', error);
+                    alert('Görsel indirilirken bir hata oluştu');
+                }
+            };
+            
+            // Add video conversion functionality
+            videoButton.onclick = async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Get the selected video duration
+                const selectedDuration = parseInt(videoDurationSelect.value, 10);
+                
+                // Önce modalı kapat
+                const parentModal = modalImage ? modalImage.closest('.fixed') : document.getElementById('imageModal');
+                if (parentModal) {
+                    parentModal.style.opacity = '0';
+                    const parentContent = parentModal.querySelector('.relative');
+                    if (parentContent) {
+                        parentContent.classList.remove('scale-100');
+                        parentContent.classList.add('scale-95');
+                    }
+                    setTimeout(() => parentModal.remove(), 300);
+                }
+                
+                // Video container'ı oluştur veya var olan container'ı bul
+                let generatedVideoContainer = document.getElementById('generatedVideoContainer');
+                if (!generatedVideoContainer) {
+                    // generatedImagesContainer'ı bul
+                    const generatedImagesContainer = document.getElementById('generatedImagesContainer');
+                    if (!generatedImagesContainer) {
+                        console.error('generatedImagesContainer bulunamadı!');
+                        return;
+                    }
+                    
+                    // generatedVideoContainer'ı oluştur
+                    generatedVideoContainer = document.createElement('div');
+                    generatedVideoContainer.id = 'generatedVideoContainer';
+                    generatedVideoContainer.className = 'mt-8 hidden bg-[#131313] p-6 rounded-xl shadow-lg ring-1 ring-[#FF6F61] ring-opacity-50';
+                    generatedVideoContainer.innerHTML = `
+                        <h3 class="text-2xl phantom-text text-center mb-4 text-[#FF6F61]">Oluşturulan Video</h3>
+                        <div id="generatedVideoGrid" class="grid grid-cols-1 gap-4"></div>
+                    `;
+                    
+                    // Video container'ı ekle
+                    generatedImagesContainer.parentNode.insertBefore(generatedVideoContainer, generatedImagesContainer.nextSibling);
+                    
+                    // Match the animation style of extractedImagesContainer
+                    setTimeout(() => {
+                        generatedVideoContainer.classList.remove('hidden');
+                    }, 100);
+                }
+                
+                // Video elementini oluştur veya güncelle
+                const videoGrid = document.getElementById('generatedVideoGrid');
+                
+                // Yükleme animasyonunu ekle
+                videoGrid.innerHTML = `
+                    <div class="flex flex-col items-center justify-center p-8">
+                        <div class="prompt-loader mb-4">
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                        </div>
+                        <p class="text-lg phantom-text-regular text-[#FF6F61]">Video oluşturuluyor... Bu işlem birkaç dakika sürebilir.</p>
+                    </div>
+                `;
+                
+                // Sayfayı video konteynırına doğru kaydır
+                generatedVideoContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                try {
+                    // Backend'e istek at
+                    const response = await fetch('/image-to-video', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            image_url: imageUrl,
+                            duration: selectedDuration,
+                            content_type: 'product-visual'
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Video dönüştürme işlemi başarısız oldu');
+                    }
+                    
+                    if (data.success && data.video_url) {
+                        // Başarılı video dönüştürme işlemi
+                        console.log('✅ Video başarıyla oluşturuldu:', data.video_url);
+                        
+                        // Video kartını oluştur
+                        const videoCard = document.createElement('div');
+                        videoCard.className = 'relative border-2 border-transparent rounded-lg overflow-hidden bg-[#131313] p-4';
+                        
+                        // Video elementini oluştur
+                        const videoElement = document.createElement('video');
+                        videoElement.src = data.video_url;
+                        videoElement.controls = true;
+                        videoElement.autoplay = true;
+                        videoElement.loop = true;
+                        videoElement.muted = false;
+                        videoElement.className = 'w-4/5 rounded-lg shadow-lg mb-8 mx-auto object-contain';
+                        videoElement.style = 'max-height: 400px;';
+                                                
+                        // Buton container oluştur (ortalamak için)
+                        const vidBtnContainer = document.createElement('div');
+                        vidBtnContainer.className = 'flex flex-row items-center justify-center gap-4 mt-6';
+                        
+                        // Download button
+                        const downloadButton = document.createElement('button');
+                        downloadButton.className = 'px-6 py-3 bg-[#131313] text-white phantom-text-regular rounded-lg flex items-center justify-center space-x-2 ring-1 ring-[#FF6F61] hover:ring-2 transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,111,97,0.6)] hover:scale-105';
+                        downloadButton.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            <span>Videoyu İndir</span>
+                        `;
+                        
+                        // İndirme fonksiyonunu ekle
+                        downloadButton.onclick = async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            try {
+                                const response = await fetch(data.video_url);
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `generated-video.mp4`;
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+                                
+                                console.log('✅ Video başarıyla indirildi');
+                            } catch (error) {
+                                console.error('❌ Video indirme hatası:', error);
+                                alert('Video indirilirken bir hata oluştu');
+                            }
+                        };
+                        
+                        vidBtnContainer.appendChild(downloadButton);
+                        
+                        // Add audio button for adding audio to the generated video
+                        const addAudioBtn = document.createElement('button');
+                        addAudioBtn.className = 'px-6 py-3 bg-[#FF6F61] text-[#131313] phantom-text rounded-lg flex items-center justify-center space-x-2 transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#FF6F61] focus:ring-opacity-50';
+                        addAudioBtn.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.536a5 5 0 017.072 0m-9.9-2.828a9 9 0 0112.728 0" />
+                            </svg>
+                            <span>Videoya Ses Ekle</span>
+                        `;
+                        addAudioBtn.addEventListener('click', () => showAudioPrompt(data.video_url));
+                        vidBtnContainer.appendChild(addAudioBtn);
+                        
+                        // Video kartına elementleri ekle
+                        videoCard.appendChild(videoElement);
+                        videoCard.appendChild(vidBtnContainer);
+                        
+                        // Grid'e video kartını ekle
+                        videoGrid.innerHTML = ''; // Yükleme animasyonunu kaldır
+                        videoGrid.appendChild(videoCard);
+                    } else {
+                        throw new Error('Video URL alınamadı');
+                    }
+                } catch (error) {
+                    console.error('❌ Video dönüştürme hatası:', error);
+                    
+                    // Hata mesajını video grid içinde göster
+                    videoGrid.innerHTML = `
+                        <div class="flex flex-col items-center justify-center p-8">
+                            <div class="text-red-400 text-center">
+                                <svg class="h-12 w-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <p class="font-semibold mb-2 text-[#FF6F61] phantom-text">Video oluşturulamadı</p>
+                                <p class="text-sm phantom-text-regular">${error.message}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            };
+
+            // Add keyboard event listener for closing modal with Escape key
+            const handleKeyDown = (e) => {
+                if (e.key === 'Escape') {
+                    closeButton.click();
+                    document.removeEventListener('keydown', handleKeyDown);
+                }
+            };
+            document.addEventListener('keydown', handleKeyDown);
+
+            // Assemble modal
+            imageContainer.appendChild(modalImage);
+            imageContainer.appendChild(buttonContainer);
+            modalContent.appendChild(closeButton);
+            modalContent.appendChild(imageContainer);
+            modalContainer.appendChild(modalContent);
+            document.body.appendChild(modalContainer);
+
+            // Trigger animations
+            requestAnimationFrame(() => {
+                modalContainer.style.opacity = '1';
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            });
+        }
+
+        // Add showAudioPrompt for image-to-video audio addition
+        function showAudioPrompt(videoUrl) {
+            const existing = document.getElementById('audioPromptContainer');
+            if (existing) {
+                existing.remove();
+                return;
+            }
+            const container = document.createElement('div');
+            container.id = 'audioPromptContainer';
+            container.className = 'mt-4 w-full bg-[#131313] p-4 rounded-lg shadow-lg ring-1 ring-[#FF6F61] ring-opacity-50';
+            container.innerHTML = `
+                <textarea id="audioPromptInput" rows="4" class="w-full px-4 py-2 bg-[#131313] border border-[#333333] rounded-lg focus:outline-none text-gray-100 phantom-text-regular" placeholder="Ses eklemek için İngilizce prompt girin..."></textarea>
+                <div class="mt-2 text-right">
+                    <button id="sendAudioBtn" class="px-4 py-2 bg-[#FF6F61] text-[#131313] phantom-text font-semibold rounded-md shadow ring-1 ring-[#FF6F61] hover:ring-2 transition-all duration-200">Gönder</button>
+                </div>
+            `;
+            // Append to generated video card
+            const generatedVideoContainer = document.getElementById('generatedVideoContainer');
+            if (generatedVideoContainer) {
+                generatedVideoContainer.appendChild(container);
+            }
+            document.getElementById('sendAudioBtn').onclick = async function(e) {
+                e.preventDefault();
+                const promptText = document.getElementById('audioPromptInput').value.trim();
+                if (!promptText) {
+                    alert('Lütfen bir ses promptu girin.');
+                    return;
+                }
+                const sendBtn = this;
+                sendBtn.disabled = true;
+                sendBtn.textContent = 'İşleniyor...';
+                container.innerHTML = `
+                    <div class="flex flex-col items-center">
+                        <div class="prompt-loader mb-4">
+                            <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                        </div>
+                        <p class="text-lg phantom-text-regular loading-text mt-4">Ses ekleniyor...</p>
+                    </div>
+                `;
+                try {
+                    const response = await fetch('/add-audio-to-video', {
+                        method: 'POST', headers: {'Content-Type':'application/json'},
+                        body: JSON.stringify({video_url: videoUrl, prompt: promptText, content_type: 'product-visual'})
+                    });
+                    const result = await response.json();
+                    console.log('add-audio-to-video response:', result);
+                    let newVideoUrl = null;
+                    if (response.ok && result.success) {
+                        // Pick any valid URL returned by the backend, including nested video.url
+                        newVideoUrl = result.audio_video_url || result.video_url
+                            || (result.result && (
+                                result.result.audio_video_url
+                                || (result.result.video && result.result.video.url)
+                            ));
+                    }
+                    if (newVideoUrl) {
+                        container.innerHTML = `
+                            <h3 class="text-2xl phantom-text text-center mb-4 text-[#FF6F61]">Ses Eklenen Video</h3>
+                            <div id="generatedAudioVideoGrid" class="grid grid-cols-1 gap-4">
+                                <video src="${newVideoUrl}" controls autoplay loop class="w-full rounded-lg shadow-lg mb-4 object-contain" style="max-height:400px;"></video>
+                                <div class="flex justify-center mt-2 gap-4">
+                                    <button id="downloadAudioVideoBtn" class="px-6 py-3 bg-[#131313] text-white phantom-text-regular rounded-lg flex items-center justify-center space-x-2 ring-1 ring-[#FF6F61] hover:ring-2 transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,111,97,0.6)] hover:scale-105">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                        <span>Videoyu İndir</span>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        document.getElementById('downloadAudioVideoBtn').addEventListener('click', () => window.open(newVideoUrl, '_blank'));
+                    } else {
+                        container.innerHTML = `<div class="text-red-400 text-center p-6">${result.error||'Ses eklenemedi'}</div>`;
+                    }
+                } catch (err) {
+                    console.error('❌ Ses ekleme hatası:', err);
+                    container.innerHTML = `<div class="text-red-400 text-center p-6">Hata oluştu.</div>`;
+                }
+            };
+        }
+
+    </script>
+</body>
+</html> 

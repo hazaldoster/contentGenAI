@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CinematicMind</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: url('/static/hbbg3.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #fff;
+            padding-top: 60px; /* Add padding for fixed tab bar */
+        }
+        .gradient-text {
+            background: #80CBC4;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid #80CBC4;
+        }
+        .btn-gradient {
+            background: #80CBC4;
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+        /* Video boyutu seçimi için stil */
+        .aspect-ratio-option {
+            transition: all 0.3s ease;
+            position: relative;
+            background: #252525;
+            border: 1px solid #333333;
+        }
+        .aspect-ratio-option.selected {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(128, 203, 196, 0.2);
+            border: 1px solid #80CBC4;
+        }
+        .aspect-ratio-option.selected::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border-radius: 0.5rem;
+            background: transparent;
+            z-index: -1;
+            animation: none;
+        }
+        
+        /* Prompt card styles */
+        .prompt-card {
+            transition: all 0.3s ease;
+            position: relative;
+            background: #252525;
+            border: 1px solid #80CBC4;
+            text-align: left;
+        }
+        .prompt-card.selected {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(128, 203, 196, 0.2);
+            border: 1px solid #80CBC4;
+        }
+        .prompt-card.selected::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 0.5rem;
+            background: #333333;
+            z-index: -1;
+            animation: none;
+        }
+        .prompt-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 25px;
+            height: 25px;
+            background: #80CBC4;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Edit button and editing functionality */
+        .edit-btn {
+            transition: all 0.2s ease;
+        }
+        .edit-btn:hover {
+            transform: translateY(-2px);
+        }
+        .prompt-edit textarea {
+            min-height: 200px;
+            height: auto;
+            resize: vertical;
+            width: 100%;
+            display: block;
+            box-sizing: border-box;
+            overflow: auto;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+        .prompt-edit {
+            width: 100%;
+        }
+        .prompt-card .prompt-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        @keyframes border-pulse {
+            0% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.6;
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.6;
+            }
+        }
+        
+        /* Modern yükleme animasyonları */
+        .loader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        /* Prompt yükleme animasyonu */
+        .prompt-loader {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .prompt-loader div {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #80CBC4;
+            animation: prompt-loader 1.2s linear infinite;
+        }
+        .prompt-loader div:nth-child(1) {
+            top: 8px;
+            left: 8px;
+            animation-delay: 0s;
+        }
+        .prompt-loader div:nth-child(2) {
+            top: 8px;
+            left: 32px;
+            animation-delay: -0.4s;
+        }
+        .prompt-loader div:nth-child(3) {
+            top: 8px;
+            left: 56px;
+            animation-delay: -0.8s;
+        }
+        .prompt-loader div:nth-child(4) {
+            top: 32px;
+            left: 8px;
+            animation-delay: -0.4s;
+        }
+        .prompt-loader div:nth-child(5) {
+            top: 32px;
+            left: 32px;
+            animation-delay: -0.8s;
+        }
+        .prompt-loader div:nth-child(6) {
+            top: 32px;
+            left: 56px;
+            animation-delay: -1.2s;
+        }
+        .prompt-loader div:nth-child(7) {
+            top: 56px;
+            left: 8px;
+            animation-delay: -0.8s;
+        }
+        .prompt-loader div:nth-child(8) {
+            top: 56px;
+            left: 32px;
+            animation-delay: -1.2s;
+        }
+        .prompt-loader div:nth-child(9) {
+            top: 56px;
+            left: 56px;
+            animation-delay: -1.6s;
+        }
+        @keyframes prompt-loader {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+        
+        /* Video yükleme animasyonu */
+        .video-loader {
+            width: 120px;
+            height: 80px;
+            position: relative;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .video-loader:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(128, 203, 196, 0.4);
+            animation: loading 1.5s infinite;
+        }
+        
+        .video-loader:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: #80CBC4;
+            border-bottom-color: #80CBC4;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes loading {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+        
+        @keyframes spin {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+        
+        /* Yükleme metni animasyonu */
+        .loading-text {
+            font-weight: 500;
+            background: #80CBC4;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shine 2s linear infinite;
+        }
+        
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+        /* Tab Bar Styles */
+        .tab-bar {
+            background: #252525;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            z-index: 9999 !important;
+            height: 60px !important; 
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button:hover {
+            transform: translateY(-2px);
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+        
+        /* Recent Content Bar Styles */
+        .recent-content-bar {
+            transition: all 0.3s ease-in-out;
+            transform-origin: bottom;
+            z-index: 30;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .recent-content-bar.collapsed {
+            height: 50px;
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .recent-content-bar.collapsed #recentContentHeader {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+        
+        .recent-content-bar.collapsed h3 {
+            font-size: 0.75rem;
+        }
+        
+        .recent-content-bar.expanded {
+            transform: translateY(0);
+            padding-bottom: 10px;
+            height: 800px;
+        }
+        
+        .recent-content-bar.expanded .recent-content-item {
+            height: auto;
+        }
+        
+        .recent-content-bar.expanded .recent-content-image,
+        .recent-content-bar.expanded .recent-content-video {
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .recent-content-item {
+            position: relative;
+            overflow: hidden;
+            height: 80px;
+            transition: all 0.3s ease-in-out;
+            border-radius: 0.5rem;
+        }
+        
+        .recent-content-image,
+        .recent-content-video {
+            width: 100%;
+            height: 80px;
+            object-fit: contain;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .recent-content-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 0.5rem;
+        }
+        
+        .recent-content-item:hover .recent-content-overlay {
+            opacity: 1;
+        }
+        
+        /* Kaydırmalı İçerikler İçin Stil */
+        .recent-content-scroll {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, auto);
+            gap: 32px;
+            row-gap: 32px;
+            column-gap: 30px;
+            padding: 16px;
+            overflow-y: hidden;
+        }
+        
+        .recent-content-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .recent-content-scroll::-webkit-scrollbar-thumb {
+            display: none;
+        }
+        
+        .recent-content-scroll::-webkit-scrollbar-track {
+            display: none;
+        }
+        
+        .recent-content-scroll .recent-content-item {
+            width: 100%;
+            height: auto;
+            white-space: normal;
+        }
+        
+        /* Remove scroll indicators as they're no longer needed */
+        .scroll-indicator {
+            display: none;
+        }
+
+        .recent-content-title {
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .recent-content-date {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem;
+        }
+
+        /* Button glow effect */
+        .button-glow {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .button-glow:hover {
+            box-shadow: 0 0 10px 1px rgba(128, 203, 196, 0.2);
+        }
+        
+        .button-glow:after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(128, 203, 196, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        
+        .button-glow:hover:after {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="text-gray-100 min-h-screen">
+    <!-- Fixed Navigation Bar -->
+    <nav style="position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: #252525; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); height: 60px; display: flex; align-items: center;">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <!-- Left side: Home link -->
+            <a href="{{ url_for('home_direct') }}" class="text-white hover:text-[#80CBC4] transition-colors flex items-center justify-center text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span class="font-medium phantom-text-regular text-center">Home Page</span>
+            </a>
+            
+            <!-- Right side: Actions -->
+            <div class="flex items-center gap-4">
+                <a href="/library" class="button-glow flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[#131313] hover:bg-[#1a1a1a] border border-[#333333] transition-all duration-300">
+                    <i class="ri-gallery-line text-lg"></i>
+                    <span class="font-medium phantom-text-regular text-center">Library</span>
+                </a>
+                <div id="creditDisplay" class="button-glow inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[#131313] text-white border border-[#333333]">
+                    <i class="ri-coin-line text-lg"></i>
+                    <span class="font-medium phantom-text-regular text-center">Credits: Yükleniyor...</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="container mx-auto px-4 py-8 pb-36">
+        <header class="mb-12 text-center">
+            <h1 class="text-4xl font-bold text-[#80CBC4] mb-2 phantom-text text-center mx-auto">CinematicMind</h1>
+            <p class="text-gray-400 max-w-2xl phantom-text-regular text-center mx-auto">Dream it, describe it, direct it. CinematicMind turns your written imagination into full-
+                fledged video scenes using advanced AI. Perfect for storytelling, concept reels, or
+                experimental visuals — no crew required.</p>
+        </header>
+
+        <div class="max-w-3xl mx-auto card rounded-xl shadow-2xl ">
+            <div class="p-6">
+                <form id="brandForm" class="mb-6">
+                    <div class="mb-4">
+                        <label for="brandInput" class="block text-gray-300 mb-2 font-medium phantom-text-regular text-center mx-auto"></label>
+                        <textarea id="brandInput" name="brand_input" rows="4" class="w-full px-4 py-3 bg-[#131313] border border-[#333333] rounded-lg focus:outline-none focus:border-[#333333] text-gray-100 phantom-text-regular" placeholder="Oluşturmak istediğiniz video için bir prompt girin."></textarea>
+                    </div>
+                    
+                    <button id="generateBtn" type="submit" class="button-glow w-full py-3 px-6 bg-[#131313] text-white font-medium rounded-lg hover:bg-[#1a1a1a] border border-[#333333] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#80CBC4] focus:ring-opacity-50 phantom-text-regular text-center">
+                        Promptları Oluştur
+                    </button>
+                </form>
+
+                <div id="loadingPrompts" class="hidden text-center py-8">
+                    <div class="loader-container">
+                        <div class="prompt-loader">
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                        </div>
+                        <p class="loading-text text-xl phantom-text-regular text-center mx-auto">Yaratıcı fikirler oluşturuluyor...</p>
+                    </div>
+                </div>
+
+                <div id="promptResults" class="hidden pb-20">
+                    <h2 class="text-2xl mb-4 phantom-text text-center mx-auto text-[#80CBC4] py-4">Oluşturulan Promptlar</h2>
+                    
+                    <div class="prompt-container grid grid-cols-1 md:grid-cols-2 gap-4" style="text-align: left !important;">
+                        <!-- Promptlar JavaScript ile buraya eklenecek -->
+                    </div>
+                    
+                    <!-- Video Boyutu seçimi promptların altına taşındı -->
+                    <div class="mt-6 mb-4">
+                        <label class="block text-gray-300 mb-2 font-medium phantom-text-regular text-center mx-auto">Video Boyutu</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <label class="aspect-ratio-option flex flex-col items-center p-4 rounded-lg cursor-pointer transition-all selected">
+                                <input type="radio" name="aspectRatio" value="9:16" class="sr-only aspect-ratio-input" checked>
+                                <div class="w-12 h-16 bg-gray-500 rounded-sm mb-2 flex items-center justify-center">
+                                    <div class="w-8 h-14 bg-gray-300 rounded-sm"></div>
+                                </div>
+                                <span class="text-gray-300 font-medium phantom-text-regular text-center mx-auto">9:16</span>
+                                <span class="text-gray-400 text-xs mt-1 phantom-text-regular text-center mx-auto">Dikey (Instagram Reels, TikTok)</span>
+                            </label>
+                            <label class="aspect-ratio-option flex flex-col items-center p-4 rounded-lg cursor-pointer transition-all">
+                                <input type="radio" name="aspectRatio" value="16:9" class="sr-only aspect-ratio-input">
+                                <div class="w-16 h-9 bg-gray-500 rounded-sm mb-2 flex items-center justify-center">
+                                    <div class="w-14 h-7 bg-gray-300 rounded-sm"></div>
+                                </div>
+                                <span class="text-gray-300 font-medium phantom-text-regular text-center mx-auto">16:9</span>
+                                <span class="text-gray-400 text-xs mt-1 phantom-text-regular text-center mx-auto">Yatay (YouTube, Instagram)</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Video oluştur butonu ve süre seçimi -->
+                    <div class="mt-6 flex items-center gap-4">
+                        <div class="flex-grow">
+                            <button class="button-glow create-video-btn w-full py-3 px-6 bg-[#131313] text-white font-medium rounded-lg hover:bg-[#1a1a1a] border border-[#333333] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#80CBC4] focus:ring-opacity-50 phantom-text-regular text-center">
+                                Video Oluştur
+                            </button>
+                        </div>
+                        <div class="w-32">
+                            <label class="block text-gray-300 text-sm mb-1 phantom-text-regular text-center mx-auto">Video Süresi</label>
+                            <select id="videoDuration" class="button-glow w-full px-3 py-2 bg-[#131313] border border-[#333333] rounded-lg text-gray-100 hover:bg-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#80CBC4] phantom-text-regular text-center">
+                                <option value="5s" selected>5 saniye</option>
+                                <option value="6s">6 saniye</option>
+                                <option value="7s">7 saniye</option>
+                                <option value="8s">8 saniye</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="videoLoading" class="hidden text-center py-8 mb-20">
+                    <div class="loader-container">
+                        <div class="video-loader"></div>
+                        <p class="loading-text text-xl phantom-text-regular text-center mx-auto">Video sanatı yaratılıyor...</p>
+                        <p class="text-gray-400 mt-2 phantom-text-regular text-center mx-auto">Bu işlem birkaç dakika sürebilir. Lütfen bekleyin.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="mt-12 text-center text-gray-500 text-sm phantom-text-regular">
+            <p class="phantom-text" style="text-align: center; font-size: 14px; opacity: 0.5;">© 2025 | Agentic Creative Suite powered by <b>Consciouslab</b></p>
+        </footer>
+    </div>
+
+    <!-- Recent Content Bar -->
+    <div class="fixed bottom-0 left-0 right-0 bg-opacity-90 backdrop-filter backdrop-blur-lg border-t border-gray-800 py-3 px-4 recent-content-bar collapsed" style="background: #252525;">
+        <div class="container mx-auto relative">
+            <div class="flex items-center cursor-pointer" id="recentContentHeader">
+                <div class="w-20"><!-- Left spacing --></div>
+                <h3 class="text-sm phantom-text-regular text-[#80CBC4] flex-grow text-center">Recently Created Content</h3>
+                <div class="flex items-center justify-end w-20">
+                    <button id="viewAllBtn" class="text-xs text-gray-400 mr-2 whitespace-nowrap">View All</button>
+                    <i class="ri-arrow-up-s-line text-[#80CBC4] transition-transform" id="toggleArrow"></i>
+                </div>
+            </div>
+            <div class="content-container hidden">
+                <div id="recentContentBar" class="recent-content-scroll">
+                    <div class="bg-gray-800 rounded-md animate-pulse recent-content-item"></div>
+                    <div class="bg-gray-800 rounded-md animate-pulse recent-content-item"></div>
+                    <div class="bg-gray-800 rounded-md animate-pulse recent-content-item"></div>
+                    <div class="bg-gray-800 rounded-md animate-pulse recent-content-item"></div>
+                    <div class="bg-gray-800 rounded-md animate-pulse recent-content-item"></div>
+                    <div class="bg-gray-800 rounded-md animate-pulse recent-content-item"></div>
+                    <div class="bg-gray-800 rounded-md animate-pulse recent-content-item"></div>
+                    <div class="bg-gray-800 rounded-md animate-pulse recent-content-item"></div>
+                    <div class="bg-gray-800 rounded-md animate-pulse recent-content-item"></div>
+                    <div class="bg-gray-800 rounded-md animate-pulse recent-content-item"></div>
+                    <div class="bg-gray-800 rounded-md animate-pulse recent-content-item"></div>
+                    <div class="bg-gray-800 rounded-md animate-pulse recent-content-item"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Credit management
+            let lastKnownCreditId = null;
+            async function fetchCurrentCredit() {
+                try {
+                    console.log('Fetching credit from backend API...');
+                    const response = await fetch('/api/get-credit');
+                    
+                    if (!response.ok) {
+                        throw new Error(`API error: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('API response:', data);
+                    
+                    if (data.success) {
+                        const currentCredit = data.credit;
+                        const currentId = data.id;
+                        const createdAt = data.created_at;
+                        
+                        console.log('Güncel Kredi Değeri:', currentCredit);
+                        console.log('Kredi Kaydı ID:', currentId);
+                        console.log('Oluşturulma Zamanı:', createdAt);
+                        document.querySelector('#creditDisplay span').textContent = `Credits: ${currentCredit}`;
+                        lastKnownCreditId = currentId;
+                    } else {
+                        console.log('Hiç kredi kaydı bulunamadı veya hata oluştu');
+                        document.querySelector('#creditDisplay span').textContent = 'Credits: 0';
+                    }
+                } catch (error) {
+                    console.error('Kredi değeri alınamadı:', error);
+                    document.querySelector('#creditDisplay span').textContent = 'Credits: Hata';
+                }
+            }
+
+            function setupRealtimeUpdates() {
+                try {
+                    console.log('Setting up SSE connection...');
+                    let eventSource = null;
+                    
+                    // Only establish connection when page is visible
+                    function connectSSE() {
+                        if (eventSource) {
+                            return; // Already connected
+                        }
+                        
+                        console.log('Establishing SSE connection for credit updates');
+                        eventSource = new EventSource('/api/listen-credit-changes');
+                        
+                        eventSource.onmessage = function(event) {
+                            if (event.data && event.data.trim()) {
+                                console.log('SSE message received:', event);
+                                try {
+                                    const data = JSON.parse(event.data);
+                                    
+                                    if (data.error) {
+                                        console.error('SSE error:', data.error);
+                                        return;
+                                    }
+                                    
+                                    if (data.id && data.id !== lastKnownCreditId) {
+                                        console.log('New credit record detected:', data);
+                                        lastKnownCreditId = data.id;
+                                        const creditValue = data.credit || 0;
+                                        document.querySelector('#creditDisplay span').textContent = `Credits: ${creditValue}`;
+                                    }
+                                } catch (error) {
+                                    console.error('Error processing SSE message:', error);
+                                }
+                            }
+                        };
+                        
+                        eventSource.onerror = function(error) {
+                            console.error('SSE connection error:', error);
+                            disconnectSSE();
+                            
+                            // Try to reconnect after 5 seconds
+                            setTimeout(connectSSE, 5000);
+                        };
+                    }
+                    
+                    function disconnectSSE() {
+                        if (eventSource) {
+                            console.log('Closing SSE connection');
+                            eventSource.close();
+                            eventSource = null;
+                        }
+                    }
+                    
+                    // Connect when page is visible, disconnect when hidden
+                    document.addEventListener('visibilitychange', function() {
+                        if (document.visibilityState === 'visible') {
+                            connectSSE();
+                            // Refresh credit info immediately when page becomes visible
+                            fetchCurrentCredit();
+                        } else {
+                            disconnectSSE();
+                        }
+                    });
+                    
+                    // Initial connection if page is visible
+                    if (document.visibilityState === 'visible') {
+                        connectSSE();
+                    }
+                    
+                    window.addEventListener('beforeunload', disconnectSSE);
+                } catch (error) {
+                    console.error('Error setting up SSE:', error);
+                }
+            }
+
+            fetchCurrentCredit();
+            setupRealtimeUpdates();
+            fetchRecentContent();
+
+            const checkInterval = 60000; // 1 minute (just as a fallback)
+            const fallbackChecker = setInterval(fetchCurrentCredit, checkInterval);
+            
+            window.addEventListener('beforeunload', () => {
+                clearInterval(fallbackChecker);
+            });
+            
+            // Video boyutu seçimi için
+            const aspectRatioInputs = document.querySelectorAll('.aspect-ratio-input');
+            const aspectRatioOptions = document.querySelectorAll('.aspect-ratio-option');
+            
+            // Sayfa yüklendiğinde varsayılan seçimi işaretle
+            updateSelectedAspectRatio();
+            
+            // Her bir radio input için event listener ekle
+            aspectRatioInputs.forEach(input => {
+                input.addEventListener('change', updateSelectedAspectRatio);
+            });
+            
+            // Seçilen aspect ratio'yu güncelle
+            function updateSelectedAspectRatio() {
+                aspectRatioOptions.forEach(option => {
+                    const input = option.querySelector('input');
+                    if (input.checked) {
+                        option.classList.add('selected');
+                    } else {
+                        option.classList.remove('selected');
+                    }
+                });
+            }
+
+            // Toggle Recent Content Bar
+            document.getElementById('recentContentHeader').addEventListener('click', function(e) {
+                toggleRecentContentBar();
+            });
+            
+            // View All button should toggle the bar
+            document.getElementById('viewAllBtn').addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent triggering the parent container's click handler
+                toggleRecentContentBar();
+            });
+            
+            // Function to toggle the Recent Content Bar state
+            function toggleRecentContentBar() {
+                const contentBar = document.querySelector('.recent-content-bar');
+                const contentContainer = document.querySelector('.content-container');
+                const toggleIcon = document.getElementById('toggleArrow');
+                
+                contentBar.classList.toggle('collapsed');
+                contentBar.classList.toggle('expanded');
+                contentContainer.classList.toggle('hidden');
+                
+                // Update icon
+                if (contentBar.classList.contains('expanded')) {
+                    toggleIcon.classList.remove('ri-arrow-down-s-line');
+                    toggleIcon.classList.add('ri-arrow-up-s-line');
+                } else {
+                    toggleIcon.classList.remove('ri-arrow-up-s-line');
+                    toggleIcon.classList.add('ri-arrow-down-s-line');
+                }
+                
+                // Load content if expanding for the first time
+                if (contentBar.classList.contains('expanded') && 
+                    document.getElementById('recentContentBar').children.length === 0) {
+                    fetchRecentContent();
+                }
+            }
+        });
+        
+        function fetchRecentContent() {
+            // Mevcut içerikleri temizle
+            document.getElementById('recentContentBar').innerHTML = "";
+            
+            let currentPage = 1;
+            let isLoading = false;
+            let hasMore = true;
+            
+            // İçerik oluşturma fonksiyonu
+            function createContentItem(item) {
+                const contentItem = document.createElement('div');
+                contentItem.className = 'relative group overflow-hidden rounded-md recent-content-item';
+                contentItem.style.cursor = 'pointer';
+                
+                // Change redirect to library instead of item specific page
+                contentItem.addEventListener('click', function() {
+                    window.location.href = '/library';
+                });
+                
+                // İçerik tipine göre element oluştur
+                let contentElement;
+                if (item.type === 'video') {
+                    contentElement = document.createElement('video');
+                    contentElement.src = item.url;
+                    contentElement.muted = true;
+                    contentElement.className = 'recent-content-video cursor-pointer';
+                    
+                    // Play video on hover
+                    contentElement.addEventListener('mouseenter', function() {
+                        this.play();
+                    });
+                    contentElement.addEventListener('mouseleave', function() {
+                        this.pause();
+                        this.currentTime = 0;
+                    });
+                } else {
+                    contentElement = document.createElement('img');
+                    contentElement.src = item.url;
+                    contentElement.alt = 'Recent content';
+                    contentElement.className = 'recent-content-image cursor-pointer';
+                }
+                
+                // Overlay ile içerik detayları
+                const overlay = document.createElement('div');
+                overlay.className = 'recent-content-overlay';
+                
+                const contentTitle = document.createElement('div');
+                contentTitle.className = 'text-white text-xs font-medium truncate recent-content-title';
+                contentTitle.textContent = item.title || item.type;
+                
+                const contentDate = document.createElement('div');
+                contentDate.className = 'text-gray-300 text-xs recent-content-date';
+                contentDate.textContent = new Date(item.created_at).toLocaleDateString('tr-TR');
+                
+                overlay.appendChild(contentTitle);
+                overlay.appendChild(contentDate);
+                
+                contentItem.appendChild(contentElement);
+                contentItem.appendChild(overlay);
+                
+                // Add audio icon if overlay is not found or can't be created
+                if (!contentItem.querySelector('.recent-content-overlay') || 
+                    item.type === 'audio' || 
+                    (item.title && item.title.toLowerCase().includes('audio'))) {
+                    const audioIcon = document.createElement('div');
+                    audioIcon.className = 'absolute top-2 right-2 p-1 rounded-full bg-black bg-opacity-50';
+                    audioIcon.innerHTML = '<i class="ri-volume-up-fill text-white text-lg"></i>';
+                    contentItem.appendChild(audioIcon);
+                }
+                
+                return contentItem;
+            }
+            
+            function loadMoreContent() {
+                if (isLoading || !hasMore) return;
+                
+                isLoading = true;
+                
+                // Set a larger limit to get more items at once - we need exactly 12 items for our 3x4 grid
+                fetch(`/api/recent-content?page=${currentPage}&limit=20`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            const recentContentContainer = document.getElementById('recentContentBar');
+                            
+                            if (data.items && data.items.length > 0) {
+                                // Content_type is mapped to title in the backend
+                                // Show all items with title = 'creative-scene'
+                                const filteredItems = data.items.filter(item => 
+                                    item.title === 'creative-scene'
+                                );
+                                
+                                // Add the filtered items to the container, but limit to max 12 items total
+                                const currentItemCount = recentContentContainer.querySelectorAll('.recent-content-item:not(.animate-pulse)').length;
+                                const itemsToAdd = filteredItems.slice(0, 12 - currentItemCount);
+                                
+                                itemsToAdd.forEach(item => {
+                                    const contentItem = createContentItem(item);
+                                    recentContentContainer.appendChild(contentItem);
+                                });
+                                
+                                // Remove any placeholder items if we have real content
+                                const placeholders = recentContentContainer.querySelectorAll('.animate-pulse');
+                                placeholders.forEach(placeholder => placeholder.remove());
+                                
+                                // Update pagination
+                                hasMore = data.has_more && recentContentContainer.children.length < 12;
+                                currentPage++;
+                                
+                                // If we received less than 12 items total and there are more pages,
+                                // auto-load the next page to get more content to fill the grid
+                                if (recentContentContainer.children.length < 12 && data.has_more) {
+                                    setTimeout(loadMoreContent, 300); // Add a small delay to prevent overloading
+                                }
+                                
+                                // If no items were found and we have more pages, try the next page
+                                if (filteredItems.length === 0 && data.has_more) {
+                                    setTimeout(loadMoreContent, 300);
+                                    return;
+                                }
+                                
+                                // If no creative-scene items found at all
+                                if (filteredItems.length === 0 && recentContentContainer.children.length === 0) {
+                                    const noContentMsg = document.createElement('div');
+                                    noContentMsg.className = 'col-span-4 text-center py-4 text-gray-500';
+                                    noContentMsg.textContent = 'No creative scene content found';
+                                    recentContentContainer.appendChild(noContentMsg);
+                                }
+                            } else if (recentContentContainer.children.length === 0) {
+                                // No items at all and container is empty
+                                const noContentMsg = document.createElement('div');
+                                noContentMsg.className = 'col-span-4 text-center py-4 text-gray-500';
+                                noContentMsg.textContent = 'No creative scene content found';
+                                recentContentContainer.appendChild(noContentMsg);
+                                hasMore = false;
+                            }
+                        } else {
+                            throw new Error(data.error || 'Unknown error');
+                        }
+                        isLoading = false;
+                    })
+                    .catch(error => {
+                        console.error('İçerik yüklenirken hata oluştu:', error);
+                        // Display error message in the content bar
+                        const recentContentContainer = document.getElementById('recentContentBar');
+                        const errorMsg = document.createElement('div');
+                        errorMsg.className = 'col-span-4 text-center py-4 text-red-400';
+                        errorMsg.textContent = 'İçerikler yüklenemedi';
+                        recentContentContainer.appendChild(errorMsg);
+                        hasMore = false;
+                        isLoading = false;
+                    });
+            }
+            
+            // İlk yükleme
+            loadMoreContent();
+            
+            // Remove scroll event listeners since we no longer need them
+        }
+    </script>
+</body>
+</html> 

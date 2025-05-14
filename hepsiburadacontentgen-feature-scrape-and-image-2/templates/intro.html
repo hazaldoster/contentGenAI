@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="tr" style="background-color: #131313;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hepsiburada Content Suite</title>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap&subset=latin-ext" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap&subset=latin-ext" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            background-color: #131313;
+        }
+        
+        .video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .skip-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            z-index: 2;
+            transition: background-color 0.3s ease;
+        }
+        
+        .skip-button:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #131313;
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="video-container" id="videoContainer">
+        <video id="introVideo" autoplay muted playsinline>
+            <source src="/static/videos/Hburada-BG.mp4" type="video/mp4">
+            Tarayıcınız video etiketini desteklemiyor.
+        </video>
+    </div>
+    
+    <div id="transitionOverlay" class="transition-overlay"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('introVideo');
+            const skipButton = document.getElementById('skipButton');
+            const transitionOverlay = document.getElementById('transitionOverlay');
+            let isPreloading = false;
+            let isPreloaded = false;
+            let isRedirecting = false;
+            
+            // Always set the flag that we're coming from intro
+            localStorage.setItem('comingFromIntro', 'true');
+            console.log("Set comingFromIntro flag to true");
+            
+            // Start preloading the auth page when video reaches 50% of its duration
+            video.addEventListener('timeupdate', function() {
+                // Start preloading at 50% of video
+                if (video.currentTime >= video.duration * 0.5 && !isPreloading) {
+                    preloadAuthPage();
+                }
+                
+                // Redirect at 80% of video if preloaded
+                if (video.currentTime >= video.duration * 0.8) {
+                    redirectToAuth();
+                }
+            });
+            
+            // Video bittiğinde auth sayfasına geçiş yap
+            video.addEventListener('ended', redirectToAuth);
+            
+            // Geç butonuna tıklandığında
+            if (skipButton) {
+                skipButton.addEventListener('click', function() {
+                    // If not already preloading, start preloading
+                    if (!isPreloading) {
+                        preloadAuthPage();
+                    }
+                    redirectToAuth();
+                });
+            }
+            
+            // Asynchronously preload the auth page
+            function preloadAuthPage() {
+                isPreloading = true;
+                console.log('Preloading auth page...');
+                
+                fetch('/login')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.text();
+                    })
+                    .then(html => {
+                        console.log('Auth page preloaded successfully');
+                        isPreloaded = true;
+                    })
+                    .catch(error => {
+                        console.error('Error preloading auth page:', error);
+                    });
+            }
+            
+            // Auth sayfasına geçiş fonksiyonu
+            function redirectToAuth() {
+                // Prevent multiple redirects
+                if (isRedirecting) return;
+                isRedirecting = true;
+                
+                // Event listener'ları temizle (çift çalışmayı önlemek için)
+                video.removeEventListener('timeupdate', redirectToAuth);
+                video.removeEventListener('ended', redirectToAuth);
+                
+                // Make sure we only redirect once
+                if (skipButton) {
+                    skipButton.removeEventListener('click', redirectToAuth);
+                }
+                
+                // Fade to black before navigation
+                transitionOverlay.style.opacity = '1';
+                
+                // Double-check that we've set the comingFromIntro flag
+                if (!localStorage.getItem('comingFromIntro')) {
+                    localStorage.setItem('comingFromIntro', 'true');
+                    console.log("Set comingFromIntro flag before redirect");
+                }
+                
+                // Wait for fade to complete before navigating
+                setTimeout(function() {
+                    if (isPreloading && !isPreloaded) {
+                        console.log('Waiting for preload to complete...');
+                        setTimeout(function() {
+                            // Add a query parameter to indicate coming from intro
+                            window.location.href = '/login?from=intro';
+                        }, 300);
+                    } else {
+                        // Add a query parameter to indicate coming from intro
+                        window.location.href = '/login?from=intro';
+                    }
+                }, 300);
+                
+                // Video boyunca bir kere oynatılmasını sağlamak için localStorage'a kaydet
+                localStorage.setItem('introPlayed', 'true');
+            }
+        });
+    </script>
+</body>
+</html> 
